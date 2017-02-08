@@ -49,13 +49,7 @@ public class StampDTO {
     private StringProperty ksStRateOfInspectionDate = EMPTY_STRING_VALUE;
     private StringProperty ksStApprovedDate = EMPTY_STRING_VALUE;
 
-    public void setKsStPartNumber(String ksStPartNumber) {
-        this.ksStPartNumber = new SimpleStringProperty(ksStPartNumber);
-    }
 
-    public void setKsStDescription(String ksStDescription) {
-        this.ksStDescription = new SimpleStringProperty(ksStDescription);
-    }
 
     public void setKsStMaterial(String ksStMaterial) {
         this.ksStMaterial = new SimpleStringProperty(ksStMaterial);

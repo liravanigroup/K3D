@@ -25,6 +25,7 @@ import static com.kompas.model.kompas.enums.rasterparam.Format.FORMAT_JPG;
 public class Kompas3D implements AutoCloseable {
 
     private static final String KOMPAS_API_VERSION_5 = "KOMPAS.Application.5";
+    private static final String KOMPAS_API_VERSION_7 = "ksGetApplication7";
 
     private ActiveXComponent kompasObject;
     private Queue<LocalFile> processingFiles;
@@ -38,6 +39,7 @@ public class Kompas3D implements AutoCloseable {
 
     public Kompas3D() {
         this.kompasObject = new ActiveXComponent(KOMPAS_API_VERSION_5);
+
         PropertyReader propertyReader = new PropertyReader();
 
         setVisibleMode(propertyReader.getVisibleMode());
@@ -45,15 +47,11 @@ public class Kompas3D implements AutoCloseable {
     }
 
     private void setVisibleMode(VisibleMode visibleMode) {
-        kompasObject.setProperty("visible", visibleMode.getBoolVal());
+        kompasObject.setProperty("visible", visibleMode.isWindowVisible());
     }
 
     private void hideMessage(KsHideMessage ksHideMessage) {
-        ksGetApplication7().setProperty("HideMessage", ksHideMessage.value());
-    }
-
-    private ActiveXComponent ksGetApplication7() {
-        return kompasObject.invokeGetComponent("ksGetApplication7");
+        kompasObject.invokeGetComponent(KOMPAS_API_VERSION_7).setProperty("HideMessage", ksHideMessage.getValue());
     }
 
     private void initStructTypes() {

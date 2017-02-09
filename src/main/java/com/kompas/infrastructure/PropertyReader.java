@@ -11,6 +11,7 @@ import static com.kompas.model.kompas.enums.kompasparam.KsHideMessage.ksHideMess
 import static com.kompas.model.kompas.enums.kompasparam.KsHideMessage.ksShowMessage;
 import static com.kompas.model.kompas.enums.kompasparam.VisibleMode.HIDDEN_MODE;
 import static com.kompas.model.kompas.enums.kompasparam.VisibleMode.VISIBLE_MODE;
+import static java.lang.Boolean.getBoolean;
 
 /**
  * Created by White Stream on 08.02.2017.
@@ -34,10 +35,10 @@ public class PropertyReader {
     }
 
     public VisibleMode getVisibleMode() {
-        return Boolean.getBoolean(properties.getProperty("visiblemode")) ? VISIBLE_MODE : HIDDEN_MODE;
+        return getBoolean(properties.getProperty("kompas.window.visible")) ? VISIBLE_MODE : HIDDEN_MODE;
     }
 
     public KsHideMessage getKsHideMessage(){
-        return Boolean.getBoolean(properties.getProperty("hidemessages")) ? ksHideMessageNo : ksShowMessage;
+        return getBoolean(properties.getProperty("kompas.messages.visible")) ? ksShowMessage : ksHideMessageNo;
     }
 }

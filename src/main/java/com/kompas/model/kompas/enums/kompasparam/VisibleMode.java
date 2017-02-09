@@ -1,26 +1,15 @@
 package com.kompas.model.kompas.enums.kompasparam;
 
-/**
- * Created by Sergej Povzanyuk on 10.08.2016.
- */
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@AllArgsConstructor
+@Getter
 public enum VisibleMode {
 
     HIDDEN_MODE(false, 1),
     VISIBLE_MODE(true, 0);
 
-    private final boolean isVisibleWindow;
-    private final int isVisibleDrawing;
-
-    VisibleMode(boolean isVisibleWindow, int isVisibleDrawing) {
-        this.isVisibleWindow = isVisibleWindow;
-        this.isVisibleDrawing = isVisibleDrawing;
-    }
-
-    public boolean getBoolVal() {
-        return isVisibleWindow;
-    }
-
-    public int getIntVal() {
-        return isVisibleDrawing;
-    }
+    private boolean isWindowVisible;
+    private int visibleMode;
 }

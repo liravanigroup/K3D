@@ -27,7 +27,7 @@ public class KsDocument2D {
     }
 
     public boolean ksOpenDocument(String path, VisibleMode visibleMode) {
-        return ksDocument2D.invoke("ksOpenDocument", path, visibleMode.getIntVal()).getBoolean();
+        return ksDocument2D.invoke("ksOpenDocument", path, visibleMode.getVisibleMode()).getBoolean();
     }
 
     public boolean ksSaveDocument(String path) {

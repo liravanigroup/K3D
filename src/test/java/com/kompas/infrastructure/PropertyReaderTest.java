@@ -51,5 +51,4 @@ public class PropertyReaderTest {
         assertEquals(ksHideMessageNo, ksHideMessage);
         assertEquals(2, ksHideMessage.getValue());
     }
-
 }

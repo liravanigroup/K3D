@@ -1,8 +1,13 @@
 package com.kompas.model.kompas.enums;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
  * Created by Sergej Povzanyuk on 08.08.2016.
  */
+@AllArgsConstructor
+@Getter
 public enum StructType2DEnum {
     ksTextParam(28),
     ksTextLineParam(29),
@@ -17,12 +22,4 @@ public enum StructType2DEnum {
     ksTextDocumentParam(124);
 
     private int structTypeNum;
-
-    StructType2DEnum(int numberOfStructType) {
-        this.structTypeNum = numberOfStructType;
-    }
-
-    public int getNumber() {
-        return structTypeNum;
-    }
 }

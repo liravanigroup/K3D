@@ -1,9 +1,13 @@
 package com.kompas.model.kompas.enums;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
  * Created by Sergej Povzanyuk on 08.08.2016.
  */
-
+@AllArgsConstructor
+@Getter
 public enum KsStampEnum {
 
     ALL_STAMP(0),
@@ -39,13 +43,4 @@ public enum KsStampEnum {
     ksStApprovedDate(135);
 
     private int stampFieldNumber;
-
-    KsStampEnum(int StampFieldNumber) {
-        stampFieldNumber = StampFieldNumber;
-    }
-
-    public int getStampFieldNumber() {
-        return stampFieldNumber;
-    }
-
 }

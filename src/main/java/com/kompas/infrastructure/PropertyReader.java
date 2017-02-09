@@ -41,4 +41,12 @@ public class PropertyReader {
     public KsHideMessage getKsHideMessage(){
         return getBoolean(properties.getProperty("kompas.messages.visible")) ? ksShowMessage : ksHideMessageNo;
     }
+
+    public String getAPI5(){
+        return properties.getProperty("kompas.api5.version");
+    }
+
+    public String getAPI7(){
+        return properties.getProperty("kompas.api7.version");
+    }
 }

@@ -94,7 +94,7 @@ public class KsDocument2D {
     }
 
     public void ksGetObjParam(ParamType paramType, ActiveXComponent ksDocumentParam) {
-        ksDocument2D.invoke("ksGetObjParam", new Variant(getReference()), new Variant(ksDocumentParam), new Variant(paramType.getNumber()));
+        ksDocument2D.invoke("ksGetObjParam", new Variant(getReference()), new Variant(ksDocumentParam), new Variant(paramType.getParamType()));
     }
 
     public long ksTextLine(ActiveXComponent ksTextItemParam){

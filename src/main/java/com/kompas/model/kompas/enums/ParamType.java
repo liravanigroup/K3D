@@ -1,10 +1,14 @@
 package com.kompas.model.kompas.enums;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
  * Created by Sergej Povzanyuk on 08.08.2016.
  */
+@AllArgsConstructor
+@Getter
 public enum ParamType {
-
     ALLPARAM(-1),
     SHEET_ALLPARAM(-2),
     NURBS_CLAMPED_ALLPARAM(-5),
@@ -12,13 +16,4 @@ public enum ParamType {
     VIEW_ALLPARAM(-7);
 
     private int paramType;
-
-    ParamType(int paramType) {
-        this.paramType = paramType;
-    }
-
-    public int getNumber() {
-        return paramType;
-    }
-
 }

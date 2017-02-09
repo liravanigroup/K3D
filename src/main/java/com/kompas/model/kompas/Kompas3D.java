@@ -1,34 +1,18 @@
 package com.kompas.model.kompas;
 
-import com.idrawing.filemanager.domain.LocalFile;
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Variant;
 import com.kompas.infrastructure.PropertyReader;
-import com.kompas.model.dto.StampDTO;
-import com.kompas.model.kompas.enums.DynamicArrayType;
 import com.kompas.model.kompas.enums.StructType2DEnum;
-import com.kompas.model.kompas.enums.kompasparam.KsHideMessage;
 import com.kompas.model.kompas.enums.kompasparam.VisibleMode;
-import com.kompas.domain.Drawing;
-import com.kompas.model.kompas.enums.rasterparam.*;
-import javafx.collections.ObservableList;
 
 import java.io.File;
-import java.util.Queue;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.kompas.model.kompas.enums.kompasparam.VisibleMode.HIDDEN_MODE;
-import static com.kompas.model.kompas.enums.rasterparam.ColorBPP.PP_COLOR_24;
-import static com.kompas.model.kompas.enums.rasterparam.ColorType.COLOROBJECT;
-import static com.kompas.model.kompas.enums.rasterparam.ExtScale.ONE_TO_ONE;
-import static com.kompas.model.kompas.enums.rasterparam.Format.FORMAT_JPG;
 
-public class Kompas3D implements AutoCloseable {
-
-    private static final String KOMPAS_API_VERSION_5 = "KOMPAS.Application.5";
-    private static final String KOMPAS_API_VERSION_7 = "ksGetApplication7";
-
-    private ActiveXComponent kompasObject;
-    private Queue<LocalFile> processingFiles;
+public class Kompas3D {
 
     private ActiveXComponent ksDocumentParam;
     private ActiveXComponent ksTextItemParam;
@@ -37,24 +21,19 @@ public class Kompas3D implements AutoCloseable {
     private ActiveXComponent ksSheetOptions;
     private ActiveXComponent ksSheetPar;
 
-    public Kompas3D() {
-        this.kompasObject = new ActiveXComponent(KOMPAS_API_VERSION_5);
+    private ActiveXComponent kompasObject;
+    private PropertyReader property;
+    private List<KsDocument2D> documents = new ArrayList<>();
 
-        PropertyReader propertyReader = new PropertyReader();
-
-        setVisibleMode(propertyReader.getVisibleMode());
-        hideMessage(propertyReader.getKsHideMessage());
+    public Kompas3D(PropertyReader property) {
+        this.property = property;
     }
 
-    private void setVisibleMode(VisibleMode visibleMode) {
-        kompasObject.setProperty("visible", visibleMode.isWindowVisible());
-    }
+    public void open(){
+        this.kompasObject = new ActiveXComponent(property.getAPI5());
+        kompasObject.setProperty("visible", property.getVisibleMode().isWindowVisible());
+        kompasObject.invokeGetComponent(property.getAPI7()).setProperty("HideMessage", property.getKsHideMessage().getValue());
 
-    private void hideMessage(KsHideMessage ksHideMessage) {
-        kompasObject.invokeGetComponent(KOMPAS_API_VERSION_7).setProperty("HideMessage", ksHideMessage.getValue());
-    }
-
-    private void initStructTypes() {
         this.ksDocumentParam = getParamStruct(StructType2DEnum.ksDocumentParam);
         this.ksTextItemParam = getParamStruct(StructType2DEnum.ksTextItemParam);
         this.ksTextLineParam = getParamStruct(StructType2DEnum.ksTextLineParam);
@@ -63,192 +42,35 @@ public class Kompas3D implements AutoCloseable {
         this.ksSheetPar = getParamStruct(StructType2DEnum.ksSheetPar);
     }
 
-    public ActiveXComponent getParamStruct(StructType2DEnum structType) {
+    private ActiveXComponent getParamStruct(StructType2DEnum structType) {
         return kompasObject.invokeGetComponent("GetParamStruct", new Variant(structType.getNumber()));
     }
 
-
-    public boolean openDrawing(KsDocument2D ksDocument2D, String path, VisibleMode visibleMode) {
-        return ksDocument2D.ksOpenDocument(path, visibleMode);
+    public boolean openDrawing(File drawing) {
+        return openDrawing(getKsDocument2D(), drawing.getAbsolutePath(), property.getVisibleMode());
     }
 
-
-    public void setProcessingFiles(Queue<LocalFile> processingFiles) {
-        this.processingFiles = processingFiles;
+    private boolean openDrawing(KsDocument2D ksDocument2D, String path, VisibleMode visibleMode) {
+        boolean result = ksDocument2D.ksOpenDocument(path, visibleMode);
+        documents.add(ksDocument2D);
+        return result;
     }
 
-    public boolean ksMessage(String message) {
-        return kompasObject.invoke("ksMessage", message).getBoolean();
+    private KsDocument2D getKsDocument2D() {
+        return new KsDocument2D(kompasObject.invokeGetComponent("Document2D"));
     }
 
-    public KsDocument2D getActiveDocument2D() {
-        return new KsDocument2D(kompasObject.invokeGetComponent("ActiveDocument2D"));
-    }
-
-    public ActiveXComponent getDocument2D() {
-        return kompasObject.invokeGetComponent("Document2D");
-    }
-
-    public KsDocument2D getKsDocument2D() {
-        return new KsDocument2D(getDocument2D());
-    }
-
-
-    public ActiveXComponent getDynamicArray(DynamicArrayType dynamicArrayType) {
-        return kompasObject.invokeGetComponent("GetDynamicArray", new Variant(dynamicArrayType.getNumber()));
-    }
-
-    private long ksResultNULL() {
-        return kompasObject.invoke("ksResultNULL").getInt();
-    }
-
-
-    public void saveDrawingsAs(ColorBPP colorBPP, ColorType colorType, ExtResolution extResolution, ExtScale extScale,
-                               Format format, boolean grayScale, boolean multiPageOutput, boolean onlyThinLine, RangeIndex rangeIndex) {
-        while (!processingFiles.isEmpty()) {
-            LocalFile file = processingFiles.poll();
-            KsDocument2D ksDocument2D = getKsDocument2D();
-            ActiveXComponent rasterParam = ksDocument2D.rasterFormatParam(colorBPP, colorType, extResolution, extScale, format, grayScale, multiPageOutput, onlyThinLine, rangeIndex);
-            if (openDrawing(ksDocument2D, file.getPathString(), HIDDEN_MODE)) {
-
-                String ext = ".jpg";
-                String path = "D:/test/";
-
-                ksDocument2D.saveAsToRasterFormat(path + file.getName() + ext, rasterParam);
-                closeDrawing(ksDocument2D);
+    public boolean closeDrawing(File drawing) {
+        for (KsDocument2D document : documents){
+            DrawingMetaData drawingMetaData = document.getFileData(ksDocumentParam);
+            if(drawingMetaData.getFileName().equals(drawing.getAbsolutePath())){
+                return document.ksCloseDocument();
             }
         }
+        return false;
     }
 
-    public void saveDrawingAs(ColorBPP colorBPP, ColorType colorType, ExtResolution extResolution, ExtScale extScale, Format format, boolean grayScale, boolean multiPageOutput, boolean onlyThinLine, RangeIndex rangeIndex, LocalFile file, KsDocument2D ksDocument2D) {
-        ActiveXComponent rasterParam = ksDocument2D.rasterFormatParam(colorBPP, colorType, extResolution, extScale, format, grayScale, multiPageOutput, onlyThinLine, rangeIndex);
-        ksDocument2D.saveAsToRasterFormat("C:\\Users\\Amsterdam\\IdeaProjects\\Kompas\\kompas3D\\src\\main\\resources\\images\\" + file.getName() + ".jpg", rasterParam);
-    }
-
-    public void createIndex(ObservableList<Drawing> drawingData) {
-        initStructTypes();
-        while (!processingFiles.isEmpty()) {
-            KsDocument2D ksDocument2D = new KsDocument2D(getDocument2D());
-            LocalFile file = processingFiles.poll();
-            String path = file.getPathString();
-            if (openDrawing(ksDocument2D, path, HIDDEN_MODE)) {
-                try {
-                    ksDocument2D.getFileData(ksDocumentParam);
-                    KsStamp ksStamp = ksDocument2D.GetStamp();
-                    StampDTO stampDTO = ksStamp.getStampDTO(ksTextLineParam, ksTextItemParam);
-
-                    saveDrawingAs(PP_COLOR_24, COLOROBJECT, ExtResolution.$36_DPI, ONE_TO_ONE, FORMAT_JPG, false, false, false, RangeIndex.ALL_PAGES, file, ksDocument2D);
-                    drawingData.add(new Drawing(stampDTO, file));
-
-                } finally {
-                    closeDrawing(ksDocument2D);
-                }
-            }
-        }
-    }
-
-    public void saveDrawingAsImage(String path, ColorBPP colorBPP, ColorType colorType, ExtResolution extResolution, ExtScale extScale, Format format, boolean grayScale, boolean multiPageOutput, boolean onlyThinLine, RangeIndex rangeIndex, LocalFile file) {
-        KsDocument2D ksDocument2D = new KsDocument2D(getDocument2D());
-        ActiveXComponent rasterParam = ksDocument2D.rasterFormatParam(colorBPP, colorType, extResolution, extScale, format, grayScale, multiPageOutput, onlyThinLine, rangeIndex);
-        if (openDrawing(ksDocument2D, file.getPathString(), HIDDEN_MODE)) {
-            ksDocument2D.saveAsToRasterFormat(path + file.getName() + format.getExtension(), rasterParam);
-            closeDrawing(ksDocument2D);
-        }
-    }
-
-    public void getGetSheetParam() {
-//        System.out.println(ksSheetOptions.invoke("Init"));
-//        System.out.println(ksSheetOptions.getProperty("layoutName"));
-//        System.out.println(ksSheetOptions.getProperty("shtType"));
-//        System.out.println(ksSheetOptions.getProperty("sheetType"));
-//        ActiveXComponent ksStandartSheet = ksSheetOptions.invokeGetComponent("GetSheetParam", new Variant(false));
-//        System.out.println(ksStandartSheet.getProperty("format"));
-//        System.out.println(ksStandartSheet.getProperty("direct"));
-//        System.out.println(ksStandartSheet.getProperty("multiply"));
-//
-//        ActiveXComponent ksSheetSize = ksSheetOptions.invokeGetComponent("GetSheetParam", new Variant(true));
-//        System.out.println(ksSheetSize.getProperty("height"));
-//        System.out.println(ksSheetSize.getProperty("width"));
-
-//        ActiveXComponent ksStandartSheet2 = ksSheetPar.invokeGetComponent("GetSheetParam");
-//        System.out.println(ksStandartSheet2.getProperty("format"));
-//        System.out.println(ksStandartSheet2.getProperty("direct"));
-//        System.out.println(ksStandartSheet2.getProperty("multiply"));
-        ksSheetPar.getProperty("shtType");
-
-    }
-
-
-    public void getPreview(File file, Long window) throws InterruptedException {
-        initStructTypes();
-        KsDocument2D ksDocument2D = new KsDocument2D(getDocument2D());
-//        System.out.println(openDrawing(ksDocument2D, file.getPath(), HIDDEN_MODE));
-
-        System.out.println(kompasObject.invoke("ksDrawSlide", new Variant(window, true), new Variant(100)));
-        System.out.println(kompasObject.invoke("ksDrawKompasDocument", new Variant(window, true), new Variant(file.getAbsolutePath(), true)));
-
-
-
-//        System.out.println(closeDrawing(ksDocument2D));
-    }
-
-    public void getAllDrawingInfo(File drawing) {
-        initStructTypes();
-        KsDocument2D ksDocument2D = new KsDocument2D(getDocument2D());
-        System.out.println(openDrawing(ksDocument2D, drawing.getPath(), HIDDEN_MODE));
-//        DrawingMetaData drawingMetaData = ksDocument2D.getFileData(ksDocumentParam);
-//        System.out.println(drawingMetaData);
-//        KsStamp ksStamp = ksDocument2D.GetStamp();
-//        StampDTO stampDTO = ksStamp.getStampDTO(ksTextLineParam, ksTextItemParam);
-//        System.out.println(stampDTO);
-
-
-//        System.out.println(ksStandartSheet.invoke("Init"));
-//        ksDocument2D.ksGetObjParam(ParamType.ALLPARAM, ksStandartSheet);
-//        System.out.println(ksStandartSheet.getProperty("direct"));
-//        System.out.println(ksStandartSheet.getProperty("format"));
-//        System.out.println(ksStandartSheet.getProperty("multiply"));
-
-//        KsDocument2D doc2d = getActiveDocument2D();
-//        ActiveXComponent so = getParamStruct(StructType2DEnum.ksSheetOptions);
-//        doc2d.ksGetDocOptions(4, so);
-//        if(Boolean.valueOf(String.valueOf(so.getProperty("sheetType")))){
-//            ActiveXComponent sh = so.invokeGetComponent("GetSheetParam", new Variant(true));
-//            System.out.println(sh.getProperty("width"));
-//            System.out.println(sh.getProperty("height"));
-//        }else{
-//            ActiveXComponent sh = so.invokeGetComponent("GetSheetParam", new Variant(false));
-//            System.out.println(sh.getProperty("format"));
-//            System.out.println(sh.getProperty("multiply"));
-//            System.out.println(sh.getProperty("direct"));
-//        }
-
-
-//        System.out.println(ksSheetOptions.invoke("Init"));
-//        ksDocument2D.ksGetObjParam(ParamType.ALLPARAM, ksSheetOptions);
-//        System.out.println(ksSheetOptions.getProperty("sheetType"));
-//        System.out.println(ksSheetOptions.getProperty("layoutName"));
-//        System.out.println(ksSheetOptions.getProperty("shtType"));
-//
-//        ActiveXComponent ksStandartSheet = ksSheetOptions.invokeGetComponent("GetSheetParam", new Variant(false));
-//        System.out.println(ksStandartSheet.getProperty("direct"));
-//        System.out.println(ksStandartSheet.getProperty("format"));
-
-
-        System.out.println(closeDrawing(ksDocument2D));
-    }
-
-
-    private boolean closeDrawing(KsDocument2D ksDocument2D) {
-        return ksDocument2D.ksCloseDocument();
-    }
-
-    @Override
     public void close() {
         kompasObject.invoke("Quit");
-    }
-
-    public void open() {
-
     }
 }

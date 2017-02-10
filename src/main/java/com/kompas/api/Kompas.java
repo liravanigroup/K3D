@@ -4,6 +4,7 @@ import com.kompas.infrastructure.PropertyReader;
 import com.kompas.model.kompas.Kompas3D;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Created by White Stream on 08.02.2017.
@@ -29,6 +30,11 @@ public class Kompas implements DrawingProgram {
     @Override
     public boolean closeDrawing(File drawing) {
         return kompas3D.closeDrawing(drawing);
+    }
+
+    @Override
+    public List<String> getAllTextsFromDocument(File drawing) {
+        return kompas3D.getAllTextFromDocument(drawing);
     }
 
     @Override

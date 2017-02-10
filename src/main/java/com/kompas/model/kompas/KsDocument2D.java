@@ -80,7 +80,7 @@ public class KsDocument2D {
 
     public DrawingMetaData getFileData(ActiveXComponent ksDocumentParam) {
         ksDocumentParam.invoke("Init");
-        ksGetObjParam(ALLPARAM, ksDocumentParam);
+        ksGetObjParam(ALLPARAM, new Variant(ksDocumentParam));
 
         DrawingMetaData metaData = new DrawingMetaData();
 
@@ -93,8 +93,16 @@ public class KsDocument2D {
         return metaData;
     }
 
-    public void ksGetObjParam(ParamType paramType, ActiveXComponent ksDocumentParam) {
-        ksDocument2D.invoke("ksGetObjParam", new Variant(getReference()), new Variant(ksDocumentParam), new Variant(paramType.getParamType()));
+//    public void ksGetObjParam(ParamType paramType, ActiveXComponent ksDocumentParam) {
+//        ksDocument2D.invoke("ksGetObjParam", new Variant(getReference()), new Variant(ksDocumentParam), new Variant(paramType.getParamType()));
+//    }
+
+    public void ksGetObjParam(Variant reference, ActiveXComponent ksDocumentParam, ParamType paramType) {
+        ksDocument2D.invoke("ksGetObjParam", reference, new Variant(ksDocumentParam), new Variant(paramType.getParamType()));
+    }
+
+    public void ksGetObjParam(ParamType paramType, Variant ksDocumentParam) {
+        ksDocument2D.invoke("ksGetObjParam", new Variant(getReference()), ksDocumentParam, new Variant(paramType.getParamType()));
     }
 
     public long ksTextLine(ActiveXComponent ksTextItemParam){

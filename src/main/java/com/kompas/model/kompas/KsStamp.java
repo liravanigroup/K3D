@@ -5,103 +5,72 @@ import com.jacob.com.Variant;
 import com.kompas.model.dto.StampDTO;
 import com.kompas.model.kompas.datastructure.KsDynamicArray;
 import com.kompas.model.kompas.enums.KsStampEnum;
+import lombok.AllArgsConstructor;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.kompas.model.kompas.enums.KsStampEnum.*;
-import static com.kompas.model.kompas.enums.KsStampEnum.ksStMaterial;
-import static com.kompas.model.kompas.enums.KsStampEnum.ksStPartNumber;
 
 /**
  * Created by Sergej Povzanyuk on 08.08.2016.
  */
+@AllArgsConstructor
 public class KsStamp {
     private ActiveXComponent ksStamp;
 
-    public KsStamp(ActiveXComponent stamp) {
-        checkNotNull(stamp);
-        this.ksStamp = stamp;
+    public boolean ksClearStamp() {
+        return ksStamp.invoke("ksClearStamp", ALL_STAMP.getIndex()).getInt() == 1;
     }
+
+    public boolean ksCleanStampCell(KsStampEnum ksStampEnum) {
+        return ksStamp.invoke("ksClearStamp", ksStampEnum.getIndex()).getInt() == 1;
+    }
+
+    public boolean ksSetStampCell(ActiveXComponent ksTextItemParam, KsStampEnum cell, String value) {
+        return setNewContentInCell(ksTextItemParam, cell, value);
+    }
+
+    public boolean ksOpenStamp() {
+        return ksStamp.invoke("ksOpenStamp").getInt() == 1;
+    }
+
+    public boolean ksCloseStamp() {
+        return ksStamp.invoke("ksCloseStamp").getInt() != 0;
+    }
+
 
     public Variant getReference() {
         return ksStamp.getProperty("reference");
-    }
-
-    public long ksClearStamp(KsStampEnum ksStampEnum) {
-        return ksStamp.invoke("ksClearStamp", ksStampEnum.getStampFieldNumber()).getInt();
-    }
-
-    private long ksOpenStamp() {
-        return ksStamp.invoke("ksOpenStamp").getInt();
-    }
-
-    private long ksCloseStamp() {
-        return ksStamp.invoke("ksCloseStamp").getInt();
     }
 
     public long getSheetNumb() {
         return ksStamp.invoke("GetSheetNumb").getInt();
     }
 
-    public long ksColumnNumber(KsStampEnum ksStampEnum) {
-        return ksStamp.invoke("ksColumnNumber", ksStampEnum.getStampFieldNumber()).getInt();
+
+
+    private boolean ksColumnNumber(KsStampEnum ksStampEnum) {
+        return ksStamp.invoke("ksColumnNumber", ksStampEnum.getIndex()).getInt() != 0;
     }
 
-    /**
-     * @param align 0 - по левому краю,
-     *              1 - по центру,
-     *              2 - по правому краю,
-     *              3 - по ширине.
-     */
-    public void ksSetTextLineAlign(short align) {
-        ksStamp.invoke("ksSetTextLineAlign", align);
+    public boolean ksSetStampColumnText(KsStampEnum ksStampEnum, ActiveXComponent ksDynamicArray) {
+        return ksStamp.invoke("ksSetStampColumnText", new Variant(ksStampEnum.getIndex()), new Variant(ksDynamicArray)).getInt() != 0;
     }
 
-    /**
-     * @param ksStampEnum
-     * @param ksDynamicArray - TEXT_LINE_ARR
-     * @return
-     */
-    public long ksSetStampColumnText(KsStampEnum ksStampEnum, ActiveXComponent ksDynamicArray) {
-        return ksStamp.invoke("ksSetStampColumnText", new Variant(ksStampEnum.getStampFieldNumber()), new Variant(ksDynamicArray)).getInt();
-    }
-
-    /**
-     * @param ksStampEnum
-     * @return TEXT_LINE_ARR
-     */
-    public KsDynamicArray ksGetStampColumnText(KsStampEnum ksStampEnum) {
-        KsDynamicArray result = null;
-        if (ksOpenStamp() == 1) {
-            ksColumnNumber(ksStampEnum);
-            result = new KsDynamicArray(ksStamp.invokeGetComponent("ksGetStampColumnText", new Variant(ksStampEnum.getStampFieldNumber(), true)));
-            ksCloseStamp();
-        }
-        return result;
-    }
-
-    /**
-     * @param textItem - ko_TextItemParam(31)
-     * @return
-     */
     private long ksTextLine(ActiveXComponent textItem) {
         return ksStamp.invoke("ksTextLine", new Variant(textItem)).getInt();
     }
 
-    // Заполнение основной надписи
-    public void setNewContentInCell(ActiveXComponent ksTextItemParam, KsStampEnum ksStampEnum, String content) {
-        if (ksOpenStamp() == 1) {
-            ksColumnNumber(ksStampEnum);
-            if (ksTextItemParam != null) {
-                ksTextItemParam.invoke("Init");
-                ActiveXComponent ksTextItemFont = ksTextItemParam.invokeGetComponent("GetItemFont");
-                if (ksTextItemFont != null) {
-                    ksTextItemFont.invoke("SetBitVectorValue", new Variant(0x1000), new Variant(true));
-                    ksTextItemParam.setProperty("s", content);
-                    ksTextLine(ksTextItemParam);
-                }
+    private boolean setNewContentInCell(ActiveXComponent ksTextItemParam, KsStampEnum ksStampEnum, String content) {
+        ksColumnNumber(ksStampEnum);
+        if (ksTextItemParam != null) {
+            ksTextItemParam.invoke("Init");
+            ActiveXComponent ksTextItemFont = ksTextItemParam.invokeGetComponent("GetItemFont");
+            if (ksTextItemFont != null) {
+                ksTextItemFont.invoke("SetBitVectorValue", new Variant(0x1000), new Variant(true));
+                ksTextItemParam.setProperty("s", content);
+                ksTextLine(ksTextItemParam);
             }
-            ksCloseStamp();
         }
+        return false;
     }
 
     public String getCellContent(KsStampEnum ksStampEnum, ActiveXComponent ksTextLineParam, ActiveXComponent ksTextItemParam) {
@@ -124,6 +93,16 @@ public class KsStamp {
         }
         ksDynamicArray.ksDeleteArray();
         return sb.toString();
+    }
+
+    public KsDynamicArray ksGetStampColumnText(KsStampEnum ksStampEnum) {
+        KsDynamicArray result = null;
+        if (ksOpenStamp()) {
+            ksColumnNumber(ksStampEnum);
+            result = new KsDynamicArray(ksStamp.invokeGetComponent("ksGetStampColumnText", new Variant(ksStampEnum.getIndex(), true)));
+            ksCloseStamp();
+        }
+        return result;
     }
 
 
@@ -166,5 +145,4 @@ public class KsStamp {
 
         return result;
     }
-
 }

@@ -7,6 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
+@ToString
 public class StampDTO {
     private static final String EMPTY_STRING_VALUE = "";
 

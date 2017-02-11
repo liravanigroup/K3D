@@ -1,8 +1,10 @@
 package com.kompas.api;
 
 import com.kompas.infrastructure.PropertyReader;
+import com.kompas.model.dto.StampDTO;
 import com.kompas.model.kompas.DrawingMetaData;
 import com.kompas.model.kompas.Kompas3D;
+import com.kompas.model.kompas.enums.KsStampEnum;
 
 import java.io.File;
 import java.util.List;
@@ -29,6 +31,11 @@ public class Kompas implements DrawingProgram {
     }
 
     @Override
+    public boolean saveDrawing(File drawing) {
+        return kompas3D.saveDrawing(drawing);
+    }
+
+    @Override
     public boolean closeDrawing(File drawing) {
         return kompas3D.closeDrawing(drawing);
     }
@@ -39,8 +46,38 @@ public class Kompas implements DrawingProgram {
     }
 
     @Override
-    public List<String> getAllSizesFromDocument(File drawing) {
+    public List<Double> getAllSizesFromDocument(File drawing) {
         return kompas3D.getAllSizesFromDocument(drawing);
+    }
+
+    @Override
+    public boolean openStamp(File drawing) {
+        return kompas3D.openStamp(drawing);
+    }
+
+    @Override
+    public boolean closeStamp(File drawing) {
+        return kompas3D.closeStamp(drawing);
+    }
+
+    @Override
+    public boolean cleanStamp(File drawing) {
+        return kompas3D.cleanStamp(drawing);
+    }
+
+    @Override
+    public boolean cleanStampCell(KsStampEnum cell, File drawing) {
+        return kompas3D.cleanStampCell(cell, drawing);
+    }
+
+    @Override
+    public boolean setStampCellValue(KsStampEnum cell, String value, File drawing) {
+        return kompas3D.setStampCellValue(cell, value, drawing);
+    }
+
+    @Override
+    public StampDTO getStampData(File drawing) {
+        return kompas3D.getStampData(drawing);
     }
 
     @Override

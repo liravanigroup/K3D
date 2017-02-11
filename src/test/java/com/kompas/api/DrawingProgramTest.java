@@ -1,6 +1,7 @@
 package com.kompas.api;
 
 import com.kompas.model.kompas.DrawingMetaData;
+import com.kompas.model.kompas.enums.KsStampEnum;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -24,6 +25,8 @@ public class DrawingProgramTest {
     private File DRAWING_CDW_2 = new File("src/test/resources/fixtures/ГОТОВО.cdw");
     private File DRAWING_CDW_METADATA = new File("src/test/resources/fixtures/A4_metadata.cdw");
     private File DRAWING_CDW_SIZES = new File("src/test/resources/fixtures/A4_sizes.cdw");
+    private File DRAWING_CDW_STAMP = new File("src/test/resources/fixtures/stamp_data.cdw");
+    private File DRAWING_CDW_STAMP_CLEAN = new File("src/test/resources/fixtures/stamp_clean.cdw");
 
     @BeforeClass
     public static void initDrawingProgram() {
@@ -114,6 +117,7 @@ public class DrawingProgramTest {
         List<String> result = drawingProgram.getAllTextsFromDocument(DRAWING_CDW_2);
 
         //then
+        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_2);
         assertTrue(result.size() > 0);
     }
 
@@ -123,9 +127,13 @@ public class DrawingProgramTest {
         boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_SIZES);
 
         //when
-        List<String> result = drawingProgram.getAllTextsFromDocument(DRAWING_CDW_2);
+        List<Double> result = drawingProgram.getAllSizesFromDocument(DRAWING_CDW_SIZES);
+        System.out.println(result);
 
         //then
+        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_SIZES);
+        assertTrue(isOpened);
+        assertTrue(isClosed);
         assertTrue(result.size() > 0);
     }
 
@@ -144,4 +152,133 @@ public class DrawingProgramTest {
         System.out.println(result.getRegime());
         System.out.println(result.getType());
     }
+
+    @Test
+    public void shouldOpenStamp() {
+        //given
+        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_STAMP);
+
+        //when
+        boolean isOpenedStamp = drawingProgram.openStamp(DRAWING_CDW_STAMP);
+
+        //then
+        boolean isClosedStamp = drawingProgram.closeStamp(DRAWING_CDW_STAMP);
+        assertTrue(isOpened);
+        assertTrue(isOpenedStamp);
+        assertTrue(isClosedStamp);
+    }
+
+    @Test
+    public void shouldCleanStamp() {
+        //given
+        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_STAMP);
+        boolean isOpenedStamp = drawingProgram.openStamp(DRAWING_CDW_STAMP);
+
+        //when
+        boolean isCleanedStamp = drawingProgram.cleanStamp(DRAWING_CDW_STAMP);
+
+        //then
+        boolean isClosedStamp = drawingProgram.closeStamp(DRAWING_CDW_STAMP);
+        assertTrue(isOpened);
+        assertTrue(isOpenedStamp);
+        assertTrue(isCleanedStamp);
+        assertTrue(isClosedStamp);
+    }
+
+    @Test
+    public void shouldCleanAndSave(){
+        //given
+        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_STAMP_CLEAN);
+
+        //when
+        boolean isOpenedStamp = drawingProgram.openStamp(DRAWING_CDW_STAMP_CLEAN);
+        boolean isCleanedStamp = drawingProgram.cleanStamp(DRAWING_CDW_STAMP_CLEAN);
+        boolean isClosedStamp = drawingProgram.closeStamp(DRAWING_CDW_STAMP_CLEAN);
+        boolean isSaved = drawingProgram.saveDrawing(DRAWING_CDW_STAMP_CLEAN);
+
+        //then
+        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_STAMP_CLEAN);
+        assertTrue(isOpened);
+        assertTrue(isOpenedStamp);
+        assertTrue(isCleanedStamp);
+        assertTrue(isClosedStamp);
+        assertTrue(isSaved);
+        assertTrue(isClosed);
+    }
+
+    @Test
+    public void shouldCleanStampSellAndSave(){
+        //given
+        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_STAMP_CLEAN);
+
+        //when
+        boolean isOpenedStamp = drawingProgram.openStamp(DRAWING_CDW_STAMP_CLEAN);
+        boolean isCleanedStamp = drawingProgram.cleanStampCell(KsStampEnum.ksStPartNumber, DRAWING_CDW_STAMP_CLEAN);
+        boolean isClosedStamp = drawingProgram.closeStamp(DRAWING_CDW_STAMP_CLEAN);
+        boolean isSaved = drawingProgram.saveDrawing(DRAWING_CDW_STAMP_CLEAN);
+
+        //then
+        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_STAMP_CLEAN);
+        assertTrue(isOpened);
+        assertTrue(isOpenedStamp);
+        assertTrue(isCleanedStamp);
+        assertTrue(isClosedStamp);
+        assertTrue(isSaved);
+        assertTrue(isClosed);
+    }
+
+    @Test
+    public void shouldSetDataToStamp(){
+        //given
+        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_STAMP_CLEAN);
+
+        //when
+        boolean isOpenedStamp = drawingProgram.openStamp(DRAWING_CDW_STAMP_CLEAN);
+        boolean isCleanedStamp = drawingProgram.cleanStamp(DRAWING_CDW_STAMP_CLEAN);
+
+        boolean isSetDataToCell1 = drawingProgram.setStampCellValue(KsStampEnum.ksStPartNumber, "TEXT", DRAWING_CDW_STAMP_CLEAN);
+        boolean isSetDataToCell2 = drawingProgram.setStampCellValue(KsStampEnum.ksStDescription, "TEXT", DRAWING_CDW_STAMP_CLEAN);
+        boolean isSetDataToCell3 = drawingProgram.setStampCellValue(KsStampEnum.ksStCompany, "TEXT", DRAWING_CDW_STAMP_CLEAN);
+        boolean isSetDataToCell4 = drawingProgram.setStampCellValue(KsStampEnum.ksStDocumentCode, "TEXT", DRAWING_CDW_STAMP_CLEAN);
+        boolean isSetDataToCell5 = drawingProgram.setStampCellValue(KsStampEnum.ksStScale, "TEXT", DRAWING_CDW_STAMP_CLEAN);
+        boolean isSetDataToCell6 = drawingProgram.setStampCellValue(KsStampEnum.ksStAuthor, "TEXT", DRAWING_CDW_STAMP_CLEAN);
+        boolean isSetDataToCell7 = drawingProgram.setStampCellValue(KsStampEnum.ksStApprovedBy, "TEXT", DRAWING_CDW_STAMP_CLEAN);
+        boolean isSetDataToCell8 = drawingProgram.setStampCellValue(KsStampEnum.ksStCheckedBy, "TEXT", DRAWING_CDW_STAMP_CLEAN);
+        boolean isSetDataToCell9 = drawingProgram.setStampCellValue(KsStampEnum.ksStDesigner, "TEXT", DRAWING_CDW_STAMP_CLEAN);
+        boolean isSetDataToCell10 = drawingProgram.setStampCellValue(KsStampEnum.ksStMass, "TEXT", DRAWING_CDW_STAMP_CLEAN);
+        boolean isSetDataToCell11 = drawingProgram.setStampCellValue(KsStampEnum.ksStMaterial, "TEXT", DRAWING_CDW_STAMP_CLEAN);
+        boolean isSetDataToCell12 = drawingProgram.setStampCellValue(KsStampEnum.ksStDocumentName, "TEXT", DRAWING_CDW_STAMP_CLEAN);
+
+
+        boolean isClosedStamp = drawingProgram.closeStamp(DRAWING_CDW_STAMP_CLEAN);
+        boolean isSaved = drawingProgram.saveDrawing(DRAWING_CDW_STAMP_CLEAN);
+
+        //then
+        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_STAMP_CLEAN);
+        assertTrue(isOpened);
+        assertTrue(isOpenedStamp);
+        assertTrue(isCleanedStamp);
+        assertTrue(isClosedStamp);
+        assertTrue(isSaved);
+        assertTrue(isClosed);
+    }
+
+    @Test
+    public void shouldGetAllStampData(){
+        //given
+        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_STAMP);
+        boolean isOpenedStamp = drawingProgram.openStamp(DRAWING_CDW_STAMP);
+
+        //when
+        System.out.println(drawingProgram.getStampData(DRAWING_CDW_STAMP));
+
+        //then
+        boolean isClosedStamp = drawingProgram.closeStamp(DRAWING_CDW_STAMP);
+        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_STAMP);
+        assertTrue(isOpened);
+        assertTrue(isOpenedStamp);
+        assertTrue(isClosedStamp);
+        assertTrue(isClosed);
+    }
+
 }

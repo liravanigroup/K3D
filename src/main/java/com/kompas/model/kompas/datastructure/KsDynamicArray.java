@@ -57,7 +57,7 @@ public class KsDynamicArray {
 
     /**
      * @param elementIndex - индекс элемента в массиве, нумерация начинается с 0
-     * @param ksTextLineParam - указатель на интерфейс соответствующего типа (ksTextLineParam(29))
+     * @param ksTextLineParam - указатель на интерфейс соответствующего типа (ko_TextLineParam(29))
      * @return 1 - в случае удачного завершения
      * 0 - в случае неудачи
      */

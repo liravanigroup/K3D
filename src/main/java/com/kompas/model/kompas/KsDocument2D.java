@@ -5,17 +5,29 @@ import com.jacob.com.Variant;
 import com.kompas.model.kompas.enums.ParamType;
 import com.kompas.model.kompas.enums.kompasparam.VisibleMode;
 import com.kompas.model.kompas.enums.rasterparam.*;
+import lombok.AllArgsConstructor;
 
 import static com.kompas.model.kompas.enums.ParamType.ALLPARAM;
 
 /**
  * Created by Sergej Povzanyuk on 08.08.2016.
  */
+@AllArgsConstructor
 public class KsDocument2D {
     private ActiveXComponent ksDocument2D;
 
-    public KsDocument2D(ActiveXComponent ksDocument2D) {
-        this.ksDocument2D = ksDocument2D;
+    public DrawingMetaData getFileData(ActiveXComponent ksDocumentParam) {
+        ksDocumentParam.invoke("Init");
+        ksGetObjParam(ALLPARAM, new Variant(ksDocumentParam));
+
+        DrawingMetaData metaData = new DrawingMetaData();
+        metaData.setAuthor(ksDocumentParam.getProperty("author").getString());
+        metaData.setComment(ksDocumentParam.getProperty("comment").getString());
+        metaData.setFileName(ksDocumentParam.getProperty("fileName").getString());
+        metaData.setRegime(ksDocumentParam.getProperty("regime").getInt());
+        metaData.setType(ksDocumentParam.getProperty("type").getInt());
+
+        return metaData;
     }
 
     private long getReference() {
@@ -78,23 +90,10 @@ public class KsDocument2D {
     }
 
 
-    public DrawingMetaData getFileData(ActiveXComponent ksDocumentParam) {
-        ksDocumentParam.invoke("Init");
-        ksGetObjParam(ALLPARAM, new Variant(ksDocumentParam));
 
-        DrawingMetaData metaData = new DrawingMetaData();
 
-        metaData.setAuthor(ksDocumentParam.getProperty("author").getString());
-        metaData.setComment(ksDocumentParam.getProperty("comment").getString());
-        metaData.setFileName(ksDocumentParam.getProperty("fileName").getString());
-        metaData.setRegime(ksDocumentParam.getProperty("regime").getInt());
-        metaData.setType(ksDocumentParam.getProperty("type").getInt());
-
-        return metaData;
-    }
-
-//    public void ksGetObjParam(ParamType paramType, ActiveXComponent ksDocumentParam) {
-//        ksDocument2D.invoke("ksGetObjParam", new Variant(getReference()), new Variant(ksDocumentParam), new Variant(paramType.getParamType()));
+//    public void ksGetObjParam(ParamType paramType, ActiveXComponent ko_DocumentParam) {
+//        ksDocument2D.invoke("ksGetObjParam", new Variant(getReference()), new Variant(ko_DocumentParam), new Variant(paramType.getParamType()));
 //    }
 
     public void ksGetObjParam(Variant reference, ActiveXComponent ksDocumentParam, ParamType paramType) {
@@ -111,5 +110,21 @@ public class KsDocument2D {
 
     public void ksGetDocOptions(int optionsType, ActiveXComponent param) {
         ksDocument2D.invoke("ksGetDocOptions", new Variant(optionsType), new Variant(param));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        KsDocument2D that = (KsDocument2D) o;
+
+        return ksDocument2D.equals(that.ksDocument2D);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return ksDocument2D.hashCode();
     }
 }

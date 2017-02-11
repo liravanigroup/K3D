@@ -80,7 +80,7 @@ public class KsStamp {
     }
 
     /**
-     * @param textItem - ksTextItemParam(31)
+     * @param textItem - ko_TextItemParam(31)
      * @return
      */
     private long ksTextLine(ActiveXComponent textItem) {
@@ -143,12 +143,12 @@ public class KsStamp {
         result.setKsStDocumentLetter2(getCellContent(ksStDocumentLetter2, ksTextLineParam, ksTextItemParam));
         result.setKsStDocumentLetter3(getCellContent(ksStDocumentLetter3, ksTextLineParam, ksTextItemParam));
 
-//        result.setKsStFullFileName(getCellContent(ksStFullFileName, ksTextLineParam, ksTextItemParam));
-//        result.setKsStShortFileName(getCellContent(ksStShortFileName, ksTextLineParam, ksTextItemParam));
-//        result.setKsStMarkingLine(getCellContent(ksStMarkingLine, ksTextLineParam, ksTextItemParam));
-//        result.setKsStDocumentName(getCellContent(ksStDocumentName, ksTextLineParam, ksTextItemParam));
-//        result.setKsStDocumentCode(getCellContent(ksStDocumentCode, ksTextLineParam, ksTextItemParam));
-//        result.setKsStOKPCode(getCellContent(ksStOKPCode, ksTextLineParam, ksTextItemParam));
+//        result.setKsStFullFileName(getCellContent(ksStFullFileName, ko_TextLineParam, ko_TextItemParam));
+//        result.setKsStShortFileName(getCellContent(ksStShortFileName, ko_TextLineParam, ko_TextItemParam));
+//        result.setKsStMarkingLine(getCellContent(ksStMarkingLine, ko_TextLineParam, ko_TextItemParam));
+//        result.setKsStDocumentName(getCellContent(ksStDocumentName, ko_TextLineParam, ko_TextItemParam));
+//        result.setKsStDocumentCode(getCellContent(ksStDocumentCode, ko_TextLineParam, ko_TextItemParam));
+//        result.setKsStOKPCode(getCellContent(ksStOKPCode, ko_TextLineParam, ko_TextItemParam));
 
 
         result.setKsStAuthor(getCellContent(ksStAuthor, ksTextLineParam, ksTextItemParam));

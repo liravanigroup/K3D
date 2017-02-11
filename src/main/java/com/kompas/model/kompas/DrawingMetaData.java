@@ -29,10 +29,11 @@ import lombok.Setter;
 @Getter
 @Setter
 public class DrawingMetaData {
-    private String author;
-    private String company;
-    private String comment;
-    private String fileName;
+    private static final String EMPTY_VALUE = "";
+    private String author = EMPTY_VALUE;
+    private String company = EMPTY_VALUE;
+    private String comment = EMPTY_VALUE;
+    private String fileName = EMPTY_VALUE;
     private int regime;
     private int type;
 }

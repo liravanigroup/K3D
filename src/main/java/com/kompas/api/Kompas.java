@@ -1,6 +1,7 @@
 package com.kompas.api;
 
 import com.kompas.infrastructure.PropertyReader;
+import com.kompas.model.kompas.DrawingMetaData;
 import com.kompas.model.kompas.Kompas3D;
 
 import java.io.File;
@@ -35,6 +36,16 @@ public class Kompas implements DrawingProgram {
     @Override
     public List<String> getAllTextsFromDocument(File drawing) {
         return kompas3D.getAllTextFromDocument(drawing);
+    }
+
+    @Override
+    public List<String> getAllSizesFromDocument(File drawing) {
+        return kompas3D.getAllSizesFromDocument(drawing);
+    }
+
+    @Override
+    public DrawingMetaData getDrawingMetaData(File drawing) {
+        return kompas3D.getDrawingMetaData(drawing);
     }
 
     @Override

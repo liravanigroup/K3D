@@ -1,5 +1,7 @@
 package com.kompas.api;
 
+import com.kompas.model.kompas.DrawingMetaData;
+
 import java.io.File;
 import java.util.List;
 
@@ -14,6 +16,10 @@ public interface DrawingProgram {
     boolean closeDrawing(File drawing);
 
     List<String> getAllTextsFromDocument(File drawing);
+
+    List<String> getAllSizesFromDocument(File drawing);
+
+    DrawingMetaData getDrawingMetaData(File drawing);
 
     void close();
 }

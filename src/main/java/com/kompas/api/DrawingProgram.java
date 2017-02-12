@@ -48,6 +48,8 @@ public interface DrawingProgram {
 
     DrawingMetaData getDrawingMetaData(File drawing);
 
+    void getSystemVersion();
+
     void close();
 
 }

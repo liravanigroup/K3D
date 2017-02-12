@@ -375,4 +375,9 @@ public class DrawingProgramTest {
 
     }
 
+    @Test
+    public void shouldGetSystemVersion(){
+        drawingProgram.getSystemVersion();
+    }
+
 }

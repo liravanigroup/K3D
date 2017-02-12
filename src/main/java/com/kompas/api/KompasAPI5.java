@@ -109,6 +109,11 @@ public class KompasAPI5 implements DrawingProgram {
     }
 
     @Override
+    public void getSystemVersion() {
+        kompas3D.getSystemVersion();
+    }
+
+    @Override
     public void close() {
         kompas3D.close();
     }

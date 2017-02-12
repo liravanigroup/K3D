@@ -6,6 +6,7 @@ import com.kompas.model.dto.RasterParamDTO;
 import com.kompas.model.dto.StampDTO;
 import com.kompas.model.kompas.enums.KsStampEnum;
 import com.kompas.model.kompas.enums.ParamType;
+import com.kompas.model.kompas.enums.SettingsType;
 import com.kompas.model.kompas.enums.documentparam.DocType;
 import com.kompas.model.kompas.enums.kompasparam.VisibleMode;
 import lombok.EqualsAndHashCode;
@@ -35,7 +36,9 @@ public class KsDocument2D {
         metaData.setComment(ksDocumentParam.getProperty("comment").getString());
         metaData.setFileName(ksDocumentParam.getProperty("fileName").getString());
         metaData.setRegime(ksDocumentParam.getProperty("regime").getInt());
-        metaData.setDocType(DocType.valueOf(ksDocumentParam.getProperty("docType").getInt()));
+        metaData.setDocType(DocType.valueOf(ksDocumentParam.getProperty("type").getInt()));
+
+
 
         return metaData;
     }
@@ -85,8 +88,8 @@ public class KsDocument2D {
         return ksDocument2D.invoke("ksTextLine", new Variant(ksTextItemParam)).getInt();
     }
 
-    public void ksGetDocOptions(int optionsType, ActiveXComponent param) {
-        ksDocument2D.invoke("ksGetDocOptions", new Variant(optionsType), new Variant(param));
+    public void ksGetDocOptions(SettingsType settingsType, ActiveXComponent param) {
+        ksDocument2D.invoke("ksGetDocOptions", new Variant(settingsType.getIndex()), new Variant(param));
     }
 
     public boolean ksOpenStamp() {

@@ -7,17 +7,18 @@ import com.kompas.model.dto.DrawingCharacteristicsDTO;
 import com.kompas.model.dto.RasterParamDTO;
 import com.kompas.model.dto.StampDTO;
 import com.kompas.model.kompas.datastructure.KsDynamicArray;
-import com.kompas.model.kompas.enums.DrawingObjectType;
-import com.kompas.model.kompas.enums.KsStampEnum;
-import com.kompas.model.kompas.enums.ParamType;
-import com.kompas.model.kompas.enums.StructType2D;
+import com.kompas.model.kompas.enums.*;
 import com.kompas.model.kompas.enums.documentparam.DocType;
 import com.kompas.model.kompas.enums.kompasparam.VisibleMode;
 import com.kompas.model.metrics.Size;
+import org.apache.commons.lang.mutable.MutableInt;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.kompas.model.kompas.enums.DrawingObjectType.*;
 import static com.kompas.model.kompas.enums.SettingsType.SHEET_OPTIONS_EX;
@@ -53,6 +54,7 @@ public class Kompas3D {
     private PropertyReader property;
     private List<KsDocument2D> documents = new ArrayList<>();
     private List<DrawingObjectType> sizeTypes;
+    private Object systemVersion;
 
     public Kompas3D(PropertyReader property) {
         this.property = property;
@@ -159,6 +161,11 @@ public class Kompas3D {
         for (KsDocument2D document : documents) {
             result = document.getFileData(ksDocumentParam);
             if (result.getFileName().equals(drawing.getAbsolutePath())) {
+                document.ksGetDocOptions(SHEET_OPTIONS_EX, ksSheetOptions);
+                System.out.println(ksSheetOptions.getProperty("layoutName"));
+                System.out.println(ksSheetOptions.getProperty("sheetType"));
+                System.out.println(ksSheetOptions.getProperty("shtType"));
+
                 return result;
             }
         }
@@ -356,7 +363,7 @@ public class Kompas3D {
 
                 } else if (type == lt_DocSheetStandart || type == lt_DocSheetUser) {
                     ActiveXComponent so = getParamStruct(ko_SheetOptions);
-                    document.ksGetDocOptions(SHEET_OPTIONS_EX.getIndex(), so);
+                    document.ksGetDocOptions(SHEET_OPTIONS_EX, so);
                     if (Boolean.valueOf(String.valueOf(so.getProperty("sheetType")))) {
                         ActiveXComponent ksSheetSize = so.invokeGetComponent("GetSheetParam", new Variant(true));
                         Size size = new Size(ksSheetSize.getProperty("width").getDouble(), ksSheetSize.getProperty("height").getDouble());
@@ -424,5 +431,20 @@ public class Kompas3D {
         }
         ksIterator.invoke("ksDeleteIterator");
         return allTableData;
+    }
+
+    public Object getSystemVersion() {
+        Integer Major = Integer.valueOf(0);
+        Integer Minor = 5;
+        Integer Release = 5;
+        Integer Build = 5;
+
+        System.out.println(kompasObject.invoke("ksGetSystemVersion", new Variant(Major, true), new Variant(0, true), new Variant(0, true), new Variant(0, true)));
+
+        System.out.println(Major);
+        System.out.println(Minor);
+        System.out.println(Release);
+        System.out.println(Build);
+        return null;
     }
 }

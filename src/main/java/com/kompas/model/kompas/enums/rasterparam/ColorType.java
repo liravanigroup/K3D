@@ -7,6 +7,10 @@ package com.kompas.model.kompas.enums.rasterparam;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+
+/**
+ * определения для настройки цвета растрового формата
+ */
 @AllArgsConstructor
 @Getter
 public enum ColorType {

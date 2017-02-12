@@ -6,6 +6,9 @@ package com.kompas.model.kompas.enums.rasterparam;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * определения для конвертации в растровый формат
+ */
 @AllArgsConstructor
 @Getter
 public enum ImageFormat {

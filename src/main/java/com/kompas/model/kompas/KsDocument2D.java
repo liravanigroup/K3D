@@ -2,6 +2,7 @@ package com.kompas.model.kompas;
 
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Variant;
+import com.kompas.model.dto.RasterParamDTO;
 import com.kompas.model.dto.StampDTO;
 import com.kompas.model.kompas.enums.KsStampEnum;
 import com.kompas.model.kompas.enums.ParamType;
@@ -72,20 +73,19 @@ public class KsDocument2D {
         return ksDocument2D.invoke("ksGetDocumentType", new Variant(getReference())).getLong();
     }
 
-    public ActiveXComponent rasterFormatParam(ColorBPP colorBPP, ColorType colorType, ExtResolution extResolution, ExtScale extScale,
-                                              ImageFormat imageFormat, boolean grayScale, boolean multiPageOutput, boolean onlyThinLine, RangeIndex rangeIndex) {
+    public ActiveXComponent rasterFormatParam(RasterParamDTO params) {
         ActiveXComponent ksRasterFormatParam = ksDocument2D.invokeGetComponent("RasterFormatParam");
         ksRasterFormatParam.invoke("Init");
 
-        ksRasterFormatParam.setProperty("colorBPP", colorBPP.value());
-        ksRasterFormatParam.setProperty("colorType", colorType.value());
-        ksRasterFormatParam.setProperty("extResolution", extResolution.value());
-        ksRasterFormatParam.setProperty("extScale", extScale.value());
-        ksRasterFormatParam.setProperty("format", imageFormat.getIndex());
-        ksRasterFormatParam.setProperty("greyScale", grayScale);
-        ksRasterFormatParam.setProperty("multiPageOutput", multiPageOutput);
-        ksRasterFormatParam.setProperty("onlyThinLine", onlyThinLine);
-        ksRasterFormatParam.setProperty("rangeIndex", rangeIndex.value());
+        ksRasterFormatParam.setProperty("colorBPP", params.getColorBPP().getIndex());
+        ksRasterFormatParam.setProperty("colorType", params.getColorType().getIndex());
+        ksRasterFormatParam.setProperty("extResolution", params.getExtResolution().getValue());
+        ksRasterFormatParam.setProperty("extScale", params.getExtScale().getValue());
+        ksRasterFormatParam.setProperty("format", params.getImageFormat().getIndex());
+        ksRasterFormatParam.setProperty("greyScale", params.isGrayScale());
+        ksRasterFormatParam.setProperty("multiPageOutput", params.isMultiPageOutput());
+        ksRasterFormatParam.setProperty("onlyThinLine", params.isOnlyThinLine());
+        ksRasterFormatParam.setProperty("rangeIndex", params.getRangeIndex().getValue());
 
         return ksRasterFormatParam;
     }

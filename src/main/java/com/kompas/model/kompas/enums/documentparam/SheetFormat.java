@@ -1,10 +1,12 @@
 package com.kompas.model.kompas.enums.documentparam;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * Created by Sergej Povzaniuk on 07.01.2017.
  */
+@Getter
 @AllArgsConstructor
 public enum SheetFormat {
     A0(0, "формат А0"),
@@ -13,14 +15,6 @@ public enum SheetFormat {
     A3(3, "формат А3"),
     A4(4, "формат А4");
 
-    private int value;
-    private String format;
-
-    public int getValue(){
-        return value;
-    }
-
-    public String getFormat(){
-        return format;
-    }
+    private int index;
+    private String name;
 }

@@ -109,6 +109,8 @@ public class KsStamp {
     public StampDTO getStampDTO(ActiveXComponent ksTextLineParam, ActiveXComponent ksTextItemParam) {
         StampDTO result = new StampDTO();
 
+        System.out.println("OK");
+
         result.setKsStPartNumber(getCellContent(ksStPartNumber, ksTextLineParam, ksTextItemParam));
         result.setKsStDescription(getCellContent(ksStDescription, ksTextLineParam, ksTextItemParam));
         result.setKsStMaterial(getCellContent(ksStMaterial, ksTextLineParam, ksTextItemParam));
@@ -116,11 +118,11 @@ public class KsStamp {
         result.setKsStScale(getCellContent(ksStScale, ksTextLineParam, ksTextItemParam));
         result.setKsStSheetNumber(getCellContent(ksStSheetNumber, ksTextLineParam, ksTextItemParam));
         result.setKsStNumberOfSheets(getCellContent(ksStNumberOfSheets, ksTextLineParam, ksTextItemParam));
-        result.setKsStCompany(getCellContent(ksStCompany, ksTextLineParam, ksTextItemParam));
-        result.setKsStTypeOfWork(getCellContent(ksStTypeOfWork, ksTextLineParam, ksTextItemParam));
-        result.setKsStDocumentLetter1(getCellContent(ksStDocumentLetter1, ksTextLineParam, ksTextItemParam));
-        result.setKsStDocumentLetter2(getCellContent(ksStDocumentLetter2, ksTextLineParam, ksTextItemParam));
-        result.setKsStDocumentLetter3(getCellContent(ksStDocumentLetter3, ksTextLineParam, ksTextItemParam));
+//        result.setKsStCompany(getCellContent(ksStCompany, ksTextLineParam, ksTextItemParam));
+//        result.setKsStTypeOfWork(getCellContent(ksStTypeOfWork, ksTextLineParam, ksTextItemParam));
+//        result.setKsStDocumentLetter1(getCellContent(ksStDocumentLetter1, ksTextLineParam, ksTextItemParam));
+//        result.setKsStDocumentLetter2(getCellContent(ksStDocumentLetter2, ksTextLineParam, ksTextItemParam));
+//        result.setKsStDocumentLetter3(getCellContent(ksStDocumentLetter3, ksTextLineParam, ksTextItemParam));
 
 //        result.setKsStFullFileName(getCellContent(ksStFullFileName, ko_TextLineParam, ko_TextItemParam));
 //        result.setKsStShortFileName(getCellContent(ksStShortFileName, ko_TextLineParam, ko_TextItemParam));
@@ -130,18 +132,18 @@ public class KsStamp {
 //        result.setKsStOKPCode(getCellContent(ksStOKPCode, ko_TextLineParam, ko_TextItemParam));
 
 
-        result.setKsStAuthor(getCellContent(ksStAuthor, ksTextLineParam, ksTextItemParam));
-        result.setKsStCheckedBy(getCellContent(ksStCheckedBy, ksTextLineParam, ksTextItemParam));
-        result.setKsStMfgApprovedBy(getCellContent(ksStMfgApprovedBy, ksTextLineParam, ksTextItemParam));
-        result.setKsStDesigner(getCellContent(ksStDesigner, ksTextLineParam, ksTextItemParam));
-        result.setKsStRateOfInspection(getCellContent(ksStRateOfInspection, ksTextLineParam, ksTextItemParam));
-        result.setKsStApprovedBy(getCellContent(ksStApprovedBy, ksTextLineParam, ksTextItemParam));
-        result.setKsStEndDesignDate(getCellContent(ksStEndDesignDate, ksTextLineParam, ksTextItemParam));
-        result.setKsStCheckedDate(getCellContent(ksStCheckedDate, ksTextLineParam, ksTextItemParam));
-        result.setKsStMfgApprovedDate(getCellContent(ksStMfgApprovedDate, ksTextLineParam, ksTextItemParam));
-        result.setKsStExecutionDate(getCellContent(ksStExecutionDate, ksTextLineParam, ksTextItemParam));
-        result.setKsStRateOfInspectionDate(getCellContent(ksStRateOfInspectionDate, ksTextLineParam, ksTextItemParam));
-        result.setKsStApprovedDate(getCellContent(ksStApprovedDate, ksTextLineParam, ksTextItemParam));
+//        result.setKsStAuthor(getCellContent(ksStAuthor, ksTextLineParam, ksTextItemParam));
+//        result.setKsStCheckedBy(getCellContent(ksStCheckedBy, ksTextLineParam, ksTextItemParam));
+//        result.setKsStMfgApprovedBy(getCellContent(ksStMfgApprovedBy, ksTextLineParam, ksTextItemParam));
+//        result.setKsStDesigner(getCellContent(ksStDesigner, ksTextLineParam, ksTextItemParam));
+//        result.setKsStRateOfInspection(getCellContent(ksStRateOfInspection, ksTextLineParam, ksTextItemParam));
+//        result.setKsStApprovedBy(getCellContent(ksStApprovedBy, ksTextLineParam, ksTextItemParam));
+//        result.setKsStEndDesignDate(getCellContent(ksStEndDesignDate, ksTextLineParam, ksTextItemParam));
+//        result.setKsStCheckedDate(getCellContent(ksStCheckedDate, ksTextLineParam, ksTextItemParam));
+//        result.setKsStMfgApprovedDate(getCellContent(ksStMfgApprovedDate, ksTextLineParam, ksTextItemParam));
+//        result.setKsStExecutionDate(getCellContent(ksStExecutionDate, ksTextLineParam, ksTextItemParam));
+//        result.setKsStRateOfInspectionDate(getCellContent(ksStRateOfInspectionDate, ksTextLineParam, ksTextItemParam));
+//        result.setKsStApprovedDate(getCellContent(ksStApprovedDate, ksTextLineParam, ksTextItemParam));
 
         return result;
     }

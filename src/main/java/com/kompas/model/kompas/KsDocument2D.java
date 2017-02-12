@@ -73,7 +73,7 @@ public class KsDocument2D {
     }
 
     public ActiveXComponent rasterFormatParam(ColorBPP colorBPP, ColorType colorType, ExtResolution extResolution, ExtScale extScale,
-                                              Format format, boolean grayScale, boolean multiPageOutput, boolean onlyThinLine, RangeIndex rangeIndex) {
+                                              ImageFormat imageFormat, boolean grayScale, boolean multiPageOutput, boolean onlyThinLine, RangeIndex rangeIndex) {
         ActiveXComponent ksRasterFormatParam = ksDocument2D.invokeGetComponent("RasterFormatParam");
         ksRasterFormatParam.invoke("Init");
 
@@ -81,7 +81,7 @@ public class KsDocument2D {
         ksRasterFormatParam.setProperty("colorType", colorType.value());
         ksRasterFormatParam.setProperty("extResolution", extResolution.value());
         ksRasterFormatParam.setProperty("extScale", extScale.value());
-        ksRasterFormatParam.setProperty("format", format.value());
+        ksRasterFormatParam.setProperty("format", imageFormat.getIndex());
         ksRasterFormatParam.setProperty("greyScale", grayScale);
         ksRasterFormatParam.setProperty("multiPageOutput", multiPageOutput);
         ksRasterFormatParam.setProperty("onlyThinLine", onlyThinLine);

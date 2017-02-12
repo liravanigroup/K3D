@@ -72,6 +72,10 @@ public class Kompas3D {
         return kompasObject.invokeGetComponent("GetParamStruct", new Variant(structType.getIndex()));
     }
 
+    public KsDocument2D getActiveDocument2D() {
+        return new KsDocument2D(kompasObject.invokeGetComponent("ActiveDocument2D"));
+    }
+
     public boolean openDrawing(File drawing) {
         return openDrawing(getKsDocument2D(), drawing.getAbsolutePath(), property.getVisibleMode());
     }
@@ -306,7 +310,6 @@ public class Kompas3D {
                 try {
                     return document.getStampData(ksTextLineParam, ksTextItemParam);
                 } catch (Exception ex) {
-                    System.out.println(ex.getMessage());
                     return result;
                 }
             }

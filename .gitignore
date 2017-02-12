@@ -1,0 +1,16 @@
+# Created by .ignore support plugin (hsz.mobi)
+.gitignore
+.idea/K3D.iml
+.idea/compiler.xml
+.idea/copyright/
+.idea/libraries/
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/workspace.xml
+src/test/resources/fixtures/A4_metadata.cdw.bak
+src/test/resources/fixtures/manual_size.cdw.bak
+src/test/resources/fixtures/plan.jpeg
+src/test/resources/fixtures/stamp_clean.cdw.bak
+src/test/resources/fixtures/table_test.cdw.bak
+target/

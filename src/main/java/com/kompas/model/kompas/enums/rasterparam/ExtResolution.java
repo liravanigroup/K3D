@@ -1,8 +1,13 @@
 package com.kompas.model.kompas.enums.rasterparam;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
  * Created by Amsterdam on 29.06.2016.
  */
+@Getter
+@AllArgsConstructor
 public enum ExtResolution {
     $9_DPI(9),
     $18_DPI(18),
@@ -14,13 +19,5 @@ public enum ExtResolution {
     $450_DPI(450),
     $600_DPI(600);
 
-    private int resolution;
-
-    ExtResolution(int resolution) {
-        this.resolution = resolution;
-    }
-
-    public int value() {
-        return resolution;
-    }
+    private int value;
 }

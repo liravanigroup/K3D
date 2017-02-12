@@ -6,8 +6,8 @@ import lombok.Getter;
 /**
  * Created by Sergej Povzaniuk on 06.01.2017.
  */
-@AllArgsConstructor
 @Getter
+@AllArgsConstructor
 public enum FileFormat {
     CDW("cdw"),
     FRW("frw"),

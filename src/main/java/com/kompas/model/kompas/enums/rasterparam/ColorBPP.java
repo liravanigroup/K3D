@@ -3,7 +3,6 @@ package com.kompas.model.kompas.enums.rasterparam;
 /**
  * Created by Amsterdam on 29.06.2016.
  */
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

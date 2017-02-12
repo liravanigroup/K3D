@@ -6,8 +6,8 @@ import com.kompas.model.dto.RasterParamDTO;
 import com.kompas.model.dto.StampDTO;
 import com.kompas.model.kompas.enums.KsStampEnum;
 import com.kompas.model.kompas.enums.ParamType;
+import com.kompas.model.kompas.enums.documentparam.DocType;
 import com.kompas.model.kompas.enums.kompasparam.VisibleMode;
-import com.kompas.model.kompas.enums.rasterparam.*;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -35,12 +35,12 @@ public class KsDocument2D {
         metaData.setComment(ksDocumentParam.getProperty("comment").getString());
         metaData.setFileName(ksDocumentParam.getProperty("fileName").getString());
         metaData.setRegime(ksDocumentParam.getProperty("regime").getInt());
-        metaData.setType(ksDocumentParam.getProperty("type").getInt());
+        metaData.setDocType(DocType.valueOf(ksDocumentParam.getProperty("docType").getInt()));
 
         return metaData;
     }
 
-    private long getReference() {
+    public long getReference() {
         return ksDocument2D.getProperty("reference").getInt();
     }
 
@@ -50,27 +50,6 @@ public class KsDocument2D {
 
     public boolean ksSaveDocument(File drawing) {
         return ksDocument2D.invoke("ksSaveDocument", drawing.getAbsolutePath()).getBoolean();
-    }
-
-    public boolean ksCloseDocument() {
-        return ksDocument2D.invoke("ksCloseDocument").getBoolean();
-    }
-
-    /**
-     * @param  - reference of ActiveDocument
-     *            lt_DocSheetStandart 1 - чертеж стандартного формата
-     *            lt_DocSheetUser 2 - чертеж нестандартного формата
-     *            lt_DocFragment 3 - фрагмент
-     *            lt_DocSpc 4 - спецификация
-     *            lt_DocPart3D 5 - деталь
-     *            lt_DocAssemble3D 6 - сборка
-     *            lt_DocTxtStandart 7 - текстовый документ стандартный
-     *            lt_DocTxtUser 8 - текстовый документ нестандартный
-     *            lt_DocSpcUser 9 - спецификация - нестандартный формат
-     * @return long
-     */
-    public long ksGetDocumentType() {
-        return ksDocument2D.invoke("ksGetDocumentType", new Variant(getReference())).getLong();
     }
 
     public ActiveXComponent rasterFormatParam(RasterParamDTO params) {
@@ -135,5 +114,25 @@ public class KsDocument2D {
 
     public StampDTO getStampData(ActiveXComponent ksTextLineParam, ActiveXComponent ksTextItemParam) {
         return ksStamp.getStampDTO(ksTextLineParam, ksTextItemParam);
+    }
+
+    public boolean ksCloseDocument() {
+        return ksDocument2D.invoke("ksCloseDocument").getBoolean();
+    }
+
+    public void ksGetObjGabaritRect(long reference, ActiveXComponent ko_rectParam) {
+        ksDocument2D.invoke("ksGetObjGabaritRect", new Variant(reference), new Variant(ko_rectParam));
+    }
+
+    public boolean ksOpenTable(Variant tableObjectRef) {
+        return ksDocument2D.invoke("ksOpenTable", tableObjectRef).getInt() != 0;
+    }
+
+    public boolean ksEndObj() {
+        return ksDocument2D.invoke("ksEndObj").getInt() != 0;
+    }
+
+    public boolean ksGetTableColumnText(Variant variant, ActiveXComponent ksTextParam) {
+        return ksDocument2D.invoke("ksGetTableColumnText", variant, new Variant(ksTextParam)).getInt() != 0;
     }
 }

@@ -25,7 +25,7 @@ public class Drawing {
 
     public Drawing(StampDTO stampDTO, LocalFile localFile) {
         this.stampDTO = stampDTO;
-        this.pathToDrawingImage = new SimpleStringProperty("file:/C:/Users/Amsterdam/IdeaProjects/Kompas/kompas3D/src/main/resources/images/" + localFile.getName().replace(" ", "%20") + ".jpg");
+        this.pathToDrawingImage = new SimpleStringProperty("file:/C:/Users/Amsterdam/IdeaProjects/KompasAPI5/kompas3D/src/main/resources/images/" + localFile.getName().replace(" ", "%20") + ".jpg");
         this.pathToDrawing = new SimpleStringProperty(localFile.getPath().toString());
         this.localFile = localFile;
         this.isActive = new SimpleBooleanProperty(false);

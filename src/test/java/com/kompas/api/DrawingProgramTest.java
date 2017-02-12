@@ -1,7 +1,10 @@
 package com.kompas.api;
 
+import com.kompas.model.dto.RasterParamDTO;
 import com.kompas.model.kompas.DrawingMetaData;
 import com.kompas.model.kompas.enums.KsStampEnum;
+import com.kompas.model.kompas.enums.documentparam.DocType;
+import com.kompas.model.kompas.enums.rasterparam.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -10,6 +13,7 @@ import org.junit.Test;
 import java.io.File;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -27,10 +31,12 @@ public class DrawingProgramTest {
     private File DRAWING_CDW_SIZES = new File("src/test/resources/fixtures/A4_sizes.cdw");
     private File DRAWING_CDW_STAMP = new File("src/test/resources/fixtures/stamp_data.cdw");
     private File DRAWING_CDW_STAMP_CLEAN = new File("src/test/resources/fixtures/stamp_clean.cdw");
+    private File DRAWING_CDW_MANUAL_SIZE = new File("src/test/resources/fixtures/manual_size.cdw");
+    private File DRAWING_CDW_TABLE = new File("src/test/resources/fixtures/table_test.cdw");
 
     @BeforeClass
     public static void initDrawingProgram() {
-        drawingProgram = new Kompas();
+        drawingProgram = new KompasAPI5();
         drawingProgram.open();
     }
 
@@ -150,7 +156,7 @@ public class DrawingProgramTest {
         System.out.println(result.getCompany());
         System.out.println(result.getFileName());
         System.out.println(result.getRegime());
-        System.out.println(result.getType());
+        System.out.println(result.getDocType());
     }
 
     @Test
@@ -279,6 +285,94 @@ public class DrawingProgramTest {
         assertTrue(isOpenedStamp);
         assertTrue(isClosedStamp);
         assertTrue(isClosed);
+    }
+
+    @Test
+    public void shouldGetDocumentType(){
+        //given
+        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_METADATA);
+
+        //when
+        DocType docType = drawingProgram.getDocumentType(DRAWING_CDW_METADATA);
+
+        //then
+        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_METADATA);
+        assertTrue(isOpened);
+        assertEquals(DocType.lt_DocSheetStandart, docType);
+        assertTrue(isClosed);
+    }
+
+    @Test
+    public void shouldGetDrawingSize(){
+        //given
+        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_METADATA);
+
+        //when
+        System.out.println(drawingProgram.getDrawingSize(DRAWING_CDW_METADATA));
+
+        //then
+        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_METADATA);
+    }
+
+    @Test
+    public void shouldGetManualSize(){
+        //given
+        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_MANUAL_SIZE);
+
+        //when
+        System.out.println(drawingProgram.getDrawingSize(DRAWING_CDW_MANUAL_SIZE));
+
+        //then
+        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_MANUAL_SIZE);
+    }
+
+    @Test
+    public void shouldGetFragmentSize(){
+        //given
+        boolean isOpened = drawingProgram.openDrawing(DRAWING_FRW);
+
+        //when
+        System.out.println(drawingProgram.getDrawingSize(DRAWING_FRW));
+
+        //then
+        boolean isClosed = drawingProgram.closeDrawing(DRAWING_FRW);
+    }
+
+    @Test
+    public void shouldSaveDrawingAsImage(){
+        //given
+        boolean isOpened = drawingProgram.openDrawing(DRAWING_FRW);
+
+        //when
+        RasterParamDTO params = new RasterParamDTO();
+
+        params.setColorBPP(ColorBPP.PP_COLOR_24);
+        params.setColorType(ColorType.COLORVIEW);
+        params.setExtResolution(ExtResolution.$96_DPI);
+        params.setExtScale(ExtScale.ONE_TO_ONE);
+        params.setGrayScale(false);
+        params.setImageFormat(ImageFormat.FORMAT_JPG);
+        params.setMultiPageOutput(false);
+        params.setOnlyThinLine(false);
+        params.setRangeIndex(RangeIndex.ALL_PAGES);
+
+        System.out.println(drawingProgram.saveDrawingAsImage(params, DRAWING_FRW));
+
+        //then
+
+    }
+
+    @Test
+    public void shouldGetTableData(){
+        //given
+        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_TABLE);
+
+        //when
+        System.out.println(drawingProgram.getAllTableDataFromDocument(DRAWING_CDW_TABLE));
+
+        //then
+
+
     }
 
 }

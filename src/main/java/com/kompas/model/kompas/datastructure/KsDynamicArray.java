@@ -2,17 +2,15 @@ package com.kompas.model.kompas.datastructure;
 
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Variant;
+import lombok.AllArgsConstructor;
 
 /**
  * Created by Sergej Povzanyuk on 09.08.2016.
  */
+@AllArgsConstructor
 public class KsDynamicArray {
 
     private ActiveXComponent ksDynamicArray;
-
-    public KsDynamicArray(ActiveXComponent ksDynamicArray) {
-        this.ksDynamicArray = ksDynamicArray;
-    }
 
     /**
      * @param elementIndex - индекс элемента, перед которым нужно вставить новый элемент,

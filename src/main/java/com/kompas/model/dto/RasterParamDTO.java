@@ -23,4 +23,5 @@ public class RasterParamDTO {
     private boolean grayScale;
     private boolean multiPageOutput;
     private boolean onlyThinLine;
+    private String pages;
 }

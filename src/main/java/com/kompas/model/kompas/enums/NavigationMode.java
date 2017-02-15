@@ -8,7 +8,7 @@ import lombok.Getter;
  */
 @AllArgsConstructor
 @Getter
-public enum DrawingObjectType {
+public enum NavigationMode {
     ALL_OBJ(0, ""),
     LINESEG_OBJ(1, "отрезок"),
     CIRCLE_OBJ(2, "окружность"),

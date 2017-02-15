@@ -11,16 +11,12 @@ import com.kompas.model.kompas.enums.*;
 import com.kompas.model.kompas.enums.documentparam.DocType;
 import com.kompas.model.kompas.enums.kompasparam.VisibleMode;
 import com.kompas.model.metrics.Size;
-import org.apache.commons.lang.mutable.MutableInt;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.kompas.model.kompas.enums.DrawingObjectType.*;
+import static com.kompas.model.kompas.enums.NavigationMode.*;
 import static com.kompas.model.kompas.enums.SettingsType.SHEET_OPTIONS_EX;
 import static com.kompas.model.kompas.enums.StructType2D.ko_SheetOptions;
 import static com.kompas.model.kompas.enums.documentparam.DocType.*;
@@ -53,7 +49,7 @@ public class Kompas3D {
 
     private PropertyReader property;
     private List<KsDocument2D> documents = new ArrayList<>();
-    private List<DrawingObjectType> sizeTypes;
+    private List<NavigationMode> sizeTypes;
     private Object systemVersion;
 
     public Kompas3D(PropertyReader property) {
@@ -162,6 +158,7 @@ public class Kompas3D {
             result = document.getFileData(ksDocumentParam);
             if (result.getFileName().equals(drawing.getAbsolutePath())) {
                 document.ksGetDocOptions(SHEET_OPTIONS_EX, ksSheetOptions);
+
                 System.out.println(ksSheetOptions.getProperty("layoutName"));
                 System.out.println(ksSheetOptions.getProperty("sheetType"));
                 System.out.println(ksSheetOptions.getProperty("shtType"));
@@ -172,65 +169,223 @@ public class Kompas3D {
         return result;
     }
 
-    public List<Double> getAllSizesFromDocument(File drawing) {
-        List<DrawingObjectType> sizeTypes = getSizeTypes();
-        ActiveXComponent ksIterator = kompasObject.invokeGetComponent("GetIterator");
-
-        ksIterator.invoke("ksCreateIterator", new Variant(sizeTypes.get(0).getIndex()), new Variant(ALL_OBJ.getIndex()));
-
-        List<Double> allSizes = new ArrayList<>();
+    public List<String> getAllSizesFromDocument(File drawing) {
+        List<String> allSizes = new ArrayList<>();
         for (KsDocument2D document : documents) {
             DrawingMetaData drawingMetaData = document.getFileData(ksDocumentParam);
             if (drawingMetaData.getFileName().equals(drawing.getAbsolutePath())) {
-                Variant sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("F"));
-                while (sizeObjectRef.getInt() != 0) {
-                    document.ksGetObjParam(sizeObjectRef, ko_LDimParam, ParamType.ALLPARAM);
-                    document.ksGetObjParam(sizeObjectRef, ko_DimText, ParamType.DIM_TEXT_PARAM);
-                    document.ksGetObjParam(sizeObjectRef, ko_LDimSource, ParamType.DIM_SOURSE_PARAM);
-                    document.ksGetObjParam(sizeObjectRef, ko_DimDrawing, ParamType.DIM_DRAW_PARAM);
-                    document.ksGetObjParam(sizeObjectRef, ko_DimensionPartsParam, ParamType.DIM_PARTS);
-                    document.ksGetObjParam(sizeObjectRef, ko_DoubleValue, ParamType.DIM_VALUE);
-
-                    System.out.println("++++++++++++++++++");
-                    Variant bitFlag = ko_DimText.getProperty("bitFlag");
-                    System.out.println(ko_DimText.getProperty("sign"));
-                    ko_DimText.getProperty("stringFlag");
-                    ko_DimText.getProperty("style");
-
-                    ko_DimText.invoke("GetBitFlagValue", bitFlag);
-                    ActiveXComponent ksDynamicArray = ko_DimText.invokeGetComponent("GetTextArr");
-
-                    int itemCount = ksDynamicArray.invoke("ksGetArrayCount").getInt();
-                    System.out.println(ksDynamicArray.invoke("ksGetArrayType"));
-                    for (int itemNumber = 0; itemNumber < itemCount; itemNumber++) {
-                        ksDynamicArray.invoke("ksGetArrayItem", new Variant(itemNumber), new Variant(ko_Char255));
-                        System.out.println(ko_Char255.invoke("str"));
-                    }
-                    System.out.println("++++++++++++++++++");
-                    allSizes.add(ko_DoubleValue.invoke("value").getDouble());
-                    sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("N"));
-                }
+                allSizes.addAll(getLdimensionObjectList(document));
+                allSizes.addAll(getAdimensionObjectList(document));
+                allSizes.addAll(getDdimensionObjectList(document));
+                allSizes.addAll(getRdimensionObjectList(document));
+                allSizes.addAll(getRbreakDimensionObjectList(document));
+                allSizes.addAll(getLbreakDimensionObjectList(document));
+                allSizes.addAll(getAbreakDimensionObjectList(document));
+                allSizes.addAll(getOrdinateDimensionObjectList(document));
+                allSizes.addAll(getArcDimensionObjectList(document));
             }
+        }
+        return allSizes;
+    }
+
+    private List<NavigationMode> getNavigationModes() {
+        List<NavigationMode> result = new ArrayList<>();
+
+        result.add(LDIMENSION_OBJ);
+        result.add(ADIMENSION_OBJ);
+        result.add(DDIMENSION_OBJ);
+        result.add(RDIMENSION_OBJ);
+        result.add(RBREAKDIMENSION_OBJ);
+        result.add(LBREAKDIMENSION_OBJ);
+        result.add(ABREAKDIMENSION_OBJ);
+        result.add(ORDINATEDIMENSION_OBJ);
+        result.add(ARCDIMENSION_OBJ);
+
+        return result;
+    }
+
+    private List<String> getLdimensionObjectList(KsDocument2D document) {
+        List<String> allSizes = new ArrayList<>();
+        ActiveXComponent ksIterator = kompasObject.invokeGetComponent("GetIterator");
+        ksIterator.invoke("ksCreateIterator", new Variant(LDIMENSION_OBJ.getIndex()), new Variant(ALL_OBJ.getIndex()));
+        Variant sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("F"));
+        while (sizeObjectRef.getInt() != 0) {
+            document.ksGetObjParam(sizeObjectRef, ko_LDimParam, ParamType.ALLPARAM);
+            document.ksGetObjParam(sizeObjectRef, ko_DimText, ParamType.DIM_TEXT_PARAM);
+            document.ksGetObjParam(sizeObjectRef, ko_LDimSource, ParamType.DIM_SOURSE_PARAM);
+            document.ksGetObjParam(sizeObjectRef, ko_DimDrawing, ParamType.DIM_DRAW_PARAM);
+            document.ksGetObjParam(sizeObjectRef, ko_DimensionPartsParam, ParamType.DIM_PARTS);
+            document.ksGetObjParam(sizeObjectRef, ko_DoubleValue, ParamType.DIM_VALUE);
+
+            System.out.println("++++++++++++++++++");
+            Variant bitFlag = ko_DimText.getProperty("bitFlag");
+            System.out.println(ko_DimText.getProperty("sign"));
+            ko_DimText.getProperty("stringFlag");
+            ko_DimText.getProperty("style");
+
+            ko_DimText.invoke("GetBitFlagValue", bitFlag);
+            ActiveXComponent ksDynamicArray = ko_DimText.invokeGetComponent("GetTextArr");
+
+            int itemCount = ksDynamicArray.invoke("ksGetArrayCount").getInt();
+            System.out.println(ksDynamicArray.invoke("ksGetArrayType"));
+            for (int itemNumber = 0; itemNumber < itemCount; itemNumber++) {
+                ksDynamicArray.invoke("ksGetArrayItem", new Variant(itemNumber), new Variant(ko_Char255));
+                System.out.println(ko_Char255.invoke("str"));
+            }
+            System.out.println("++++++++++++++++++");
+            allSizes.add(String.valueOf(ko_DoubleValue.invoke("value").getDouble()));
+            sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("N"));
         }
         ksIterator.invoke("ksDeleteIterator");
         return allSizes;
     }
 
-    private List<DrawingObjectType> getSizeTypes() {
-        List<DrawingObjectType> result = new ArrayList<>();
+    private List<String> getAdimensionObjectList(KsDocument2D document) {
+        List<String> allSizes = new ArrayList<>();
+        ActiveXComponent ksIterator = kompasObject.invokeGetComponent("GetIterator");
+        ksIterator.invoke("ksCreateIterator", new Variant(ADIMENSION_OBJ.getIndex()), new Variant(ALL_OBJ.getIndex()));
+        Variant sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("F"));
+        while (sizeObjectRef.getInt() != 0) {
+            document.ksGetObjParam(sizeObjectRef, ko_DimText, ParamType.DIM_TEXT_PARAM);
+            document.ksGetObjParam(sizeObjectRef, ko_DoubleValue, ParamType.DIM_VALUE);
 
-        result.add(DrawingObjectType.LDIMENSION_OBJ);
-        result.add(DrawingObjectType.ADIMENSION_OBJ);
-        result.add(DrawingObjectType.DDIMENSION_OBJ);
-        result.add(DrawingObjectType.RDIMENSION_OBJ);
-        result.add(DrawingObjectType.RBREAKDIMENSION_OBJ);
-        result.add(DrawingObjectType.LBREAKDIMENSION_OBJ);
-        result.add(DrawingObjectType.ABREAKDIMENSION_OBJ);
-        result.add(DrawingObjectType.ORDINATEDIMENSION_OBJ);
-        result.add(DrawingObjectType.ARCDIMENSION_OBJ);
+            System.out.println("++++++++++++++++++");
+            Variant bitFlag = ko_DimText.getProperty("bitFlag");
+            System.out.println(ko_DimText.getProperty("sign"));
+            ko_DimText.getProperty("stringFlag");
+            ko_DimText.getProperty("style");
 
-        return result;
+            ko_DimText.invoke("GetBitFlagValue", bitFlag);
+            ActiveXComponent ksDynamicArray = ko_DimText.invokeGetComponent("GetTextArr");
+
+            int itemCount = ksDynamicArray.invoke("ksGetArrayCount").getInt();
+            System.out.println(ksDynamicArray.invoke("ksGetArrayType"));
+            for (int itemNumber = 0; itemNumber < itemCount; itemNumber++) {
+                ksDynamicArray.invoke("ksGetArrayItem", new Variant(itemNumber), new Variant(ko_Char255));
+                System.out.println(ko_Char255.invoke("str"));
+            }
+            System.out.println("++++++++++++++++++");
+            allSizes.add(String.valueOf(ko_DoubleValue.invoke("value").getDouble()));
+            sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("N"));
+        }
+        ksIterator.invoke("ksDeleteIterator");
+        return allSizes;
     }
+
+    private List<String> getDdimensionObjectList(KsDocument2D document) {
+        List<String> allSizes = new ArrayList<>();
+        ActiveXComponent ksIterator = kompasObject.invokeGetComponent("GetIterator");
+        ksIterator.invoke("ksCreateIterator", new Variant(DDIMENSION_OBJ.getIndex()), new Variant(ALL_OBJ.getIndex()));
+        Variant sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("F"));
+        while (sizeObjectRef.getInt() != 0) {
+            document.ksGetObjParam(sizeObjectRef, ko_DimText, ParamType.DIM_TEXT_PARAM);
+            document.ksGetObjParam(sizeObjectRef, ko_DoubleValue, ParamType.DIM_VALUE);
+
+            System.out.println("++++++++++++++++++");
+            Variant bitFlag = ko_DimText.getProperty("bitFlag");
+            System.out.println(ko_DimText.getProperty("sign"));
+            ko_DimText.getProperty("stringFlag");
+            ko_DimText.getProperty("style");
+
+            ko_DimText.invoke("GetBitFlagValue", bitFlag);
+            ActiveXComponent ksDynamicArray = ko_DimText.invokeGetComponent("GetTextArr");
+
+            int itemCount = ksDynamicArray.invoke("ksGetArrayCount").getInt();
+            System.out.println(ksDynamicArray.invoke("ksGetArrayType"));
+            for (int itemNumber = 0; itemNumber < itemCount; itemNumber++) {
+                ksDynamicArray.invoke("ksGetArrayItem", new Variant(itemNumber), new Variant(ko_Char255));
+                System.out.println(ko_Char255.invoke("str"));
+            }
+            System.out.println("++++++++++++++++++");
+            allSizes.add(String.valueOf(ko_DoubleValue.invoke("value").getDouble()));
+            sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("N"));
+        }
+        ksIterator.invoke("ksDeleteIterator");
+        return allSizes;
+    }
+
+    private List<String> getRdimensionObjectList(KsDocument2D document) {
+        List<String> allSizes = new ArrayList<>();
+        ActiveXComponent ksIterator = kompasObject.invokeGetComponent("GetIterator");
+        ksIterator.invoke("ksCreateIterator", new Variant(RDIMENSION_OBJ.getIndex()), new Variant(ALL_OBJ.getIndex()));
+        Variant sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("F"));
+        while (sizeObjectRef.getInt() != 0) {
+            document.ksGetObjParam(sizeObjectRef, ko_DimText, ParamType.DIM_TEXT_PARAM);
+            document.ksGetObjParam(sizeObjectRef, ko_DoubleValue, ParamType.DIM_VALUE);
+
+            System.out.println("++++++++++++++++++");
+            Variant bitFlag = ko_DimText.getProperty("bitFlag");
+            System.out.println(ko_DimText.getProperty("sign"));
+            ko_DimText.getProperty("stringFlag");
+            ko_DimText.getProperty("style");
+
+            ko_DimText.invoke("GetBitFlagValue", bitFlag);
+            ActiveXComponent ksDynamicArray = ko_DimText.invokeGetComponent("GetTextArr");
+
+            int itemCount = ksDynamicArray.invoke("ksGetArrayCount").getInt();
+            System.out.println(ksDynamicArray.invoke("ksGetArrayType"));
+            for (int itemNumber = 0; itemNumber < itemCount; itemNumber++) {
+                ksDynamicArray.invoke("ksGetArrayItem", new Variant(itemNumber), new Variant(ko_Char255));
+                System.out.println(ko_Char255.invoke("str"));
+            }
+            System.out.println("++++++++++++++++++");
+            allSizes.add(String.valueOf(ko_DoubleValue.invoke("value").getDouble()));
+            sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("N"));
+        }
+        ksIterator.invoke("ksDeleteIterator");
+        return allSizes;
+    }
+
+    private List<String> getRbreakDimensionObjectList(KsDocument2D document) {
+        List<String> allSizes = new ArrayList<>();
+        ActiveXComponent ksIterator = kompasObject.invokeGetComponent("GetIterator");
+        ksIterator.invoke("ksCreateIterator", new Variant(RBREAKDIMENSION_OBJ.getIndex()), new Variant(ALL_OBJ.getIndex()));
+        Variant sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("F"));
+        while (sizeObjectRef.getInt() != 0) {
+            document.ksGetObjParam(sizeObjectRef, ko_DimText, ParamType.DIM_TEXT_PARAM);
+            document.ksGetObjParam(sizeObjectRef, ko_DoubleValue, ParamType.DIM_VALUE);
+
+            System.out.println("++++++++++++++++++");
+            Variant bitFlag = ko_DimText.getProperty("bitFlag");
+            System.out.println(ko_DimText.getProperty("sign"));
+            ko_DimText.getProperty("stringFlag");
+            ko_DimText.getProperty("style");
+
+            ko_DimText.invoke("GetBitFlagValue", bitFlag);
+            ActiveXComponent ksDynamicArray = ko_DimText.invokeGetComponent("GetTextArr");
+
+            int itemCount = ksDynamicArray.invoke("ksGetArrayCount").getInt();
+            System.out.println(ksDynamicArray.invoke("ksGetArrayType"));
+            for (int itemNumber = 0; itemNumber < itemCount; itemNumber++) {
+                ksDynamicArray.invoke("ksGetArrayItem", new Variant(itemNumber), new Variant(ko_Char255));
+                System.out.println(ko_Char255.invoke("str"));
+            }
+            System.out.println("++++++++++++++++++");
+            allSizes.add(String.valueOf(ko_DoubleValue.invoke("value").getDouble()));
+            sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("N"));
+        }
+        ksIterator.invoke("ksDeleteIterator");
+        return allSizes;
+    }
+
+    private List<String> getLbreakDimensionObjectList(KsDocument2D document) {
+        return new ArrayList<>();
+    }
+
+    private List<String> getAbreakDimensionObjectList(KsDocument2D document) {
+        return new ArrayList<>();
+    }
+
+    private List<String> getOrdinateDimensionObjectList(KsDocument2D document) {
+        return new ArrayList<>();
+    }
+
+    private List<String> getArcDimensionObjectList(KsDocument2D document) {
+        return new ArrayList<>();
+    }
+
+
+
 
     public boolean openStamp(File drawing) {
         for (KsDocument2D document : documents) {
@@ -408,9 +563,9 @@ public class Kompas3D {
                 while (tableObjectRef.getInt() != 0) {
                     document.ksOpenTable(tableObjectRef);
                     StringBuilder sb = new StringBuilder();
-                    while(document.ksGetTableColumnText(new Variant(0, true), ksTextParam)){
+                    while (document.ksGetTableColumnText(new Variant(0, true), ksTextParam)) {
                         KsDynamicArray arrpLineText = new KsDynamicArray(ksTextParam.invokeGetComponent("GetTextLineArr"));
-                        for(int index = 0; index < arrpLineText.ksGetArrayCount(); index++) {
+                        for (int index = 0; index < arrpLineText.ksGetArrayCount(); index++) {
                             arrpLineText.ksGetArrayItem(index, ksTextLineParam);
                             ActiveXComponent arrTextItem = ksTextLineParam.invokeGetComponent("GetTextItemArr");
                             int itemCount = arrTextItem.invoke("ksGetArrayCount").getInt();

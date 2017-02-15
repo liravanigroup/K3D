@@ -24,7 +24,7 @@ public interface DrawingProgram {
 
     List<String> getAllTextsFromDocument(File drawing);
 
-    List<Double> getAllSizesFromDocument(File drawing);
+    List<String> getAllSizesFromDocument(File drawing);
 
     List<String> getAllTableDataFromDocument(File drawing);
 

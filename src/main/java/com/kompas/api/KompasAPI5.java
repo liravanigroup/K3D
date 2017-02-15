@@ -11,6 +11,7 @@ import com.kompas.model.kompas.enums.documentparam.DocType;
 
 import java.io.File;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Created by White Stream on 08.02.2017.
@@ -49,7 +50,7 @@ public class KompasAPI5 implements DrawingProgram {
     }
 
     @Override
-    public List<Double> getAllSizesFromDocument(File drawing) {
+    public List<String> getAllSizesFromDocument(File drawing) {
         return kompas3D.getAllSizesFromDocument(drawing);
     }
 

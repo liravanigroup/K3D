@@ -33,6 +33,7 @@ public class DrawingProgramTest {
     private File DRAWING_CDW_STAMP_CLEAN = new File("src/test/resources/fixtures/stamp_clean.cdw");
     private File DRAWING_CDW_MANUAL_SIZE = new File("src/test/resources/fixtures/manual_size.cdw");
     private File DRAWING_CDW_TABLE = new File("src/test/resources/fixtures/table_test.cdw");
+    private File DRAWING_CDW_DIAMETER_SIZES = new File("src/test/resources/fixtures/diameter_sizes.cdw");
 
     @BeforeClass
     public static void initDrawingProgram() {
@@ -130,14 +131,14 @@ public class DrawingProgramTest {
     @Test
     public void shouldFindAllSizes(){
         //given
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_SIZES);
+        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_DIAMETER_SIZES);
 
         //when
-        List<Double> result = drawingProgram.getAllSizesFromDocument(DRAWING_CDW_SIZES);
+        List<String> result = drawingProgram.getAllSizesFromDocument(DRAWING_CDW_DIAMETER_SIZES);
         System.out.println(result);
 
         //then
-        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_SIZES);
+        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_DIAMETER_SIZES);
         assertTrue(isOpened);
         assertTrue(isClosed);
         assertTrue(result.size() > 0);

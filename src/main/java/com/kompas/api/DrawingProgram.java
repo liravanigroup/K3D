@@ -8,6 +8,7 @@ import com.kompas.model.kompas.enums.KsStampEnum;
 import com.kompas.model.kompas.enums.documentparam.DocType;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -16,40 +17,41 @@ import java.util.List;
 public interface DrawingProgram {
     void open();
 
-    boolean openDrawing(File drawing);
+    boolean openDocument(Path document);
 
-    boolean saveDrawing(File drawing);
+    boolean saveDocument(Path document);
 
-    boolean closeDrawing(File drawing);
+    boolean closeDocument(Path document);
 
-    List<String> getAllTextsFromDocument(File drawing);
+    List<String> getAllTextsFromDocument(Path document);
 
-    List<String> getAllSizesFromDocument(File drawing);
+    List<String> getAllSizesFromDocument(Path document);
 
-    List<String> getAllTableDataFromDocument(File drawing);
+    List<String> getAllTableDataFromDocument(Path document);
 
-    boolean openStamp(File drawing);
+    boolean openStamp(Path document);
 
-    boolean closeStamp(File drawing);
+    boolean closeStamp(Path document);
 
-    boolean cleanStamp(File drawing);
+    boolean cleanStamp(Path document);
 
-    boolean cleanStampCell(KsStampEnum cell, File drawing);
+    boolean cleanStampCell(KsStampEnum cell, Path document);
 
-    boolean setStampCellValue(KsStampEnum cell, String value, File drawing);
+    boolean setStampCellValue(KsStampEnum cell, String value, Path document);
 
-    boolean saveDrawingAsImage(RasterParamDTO params, File drawing);
+    boolean saveDrawingAsImage(RasterParamDTO params, Path document);
 
-    DocType getDocumentType(File drawing);
+    DocType getDocumentType(Path document);
 
-    StampDTO getStampData(File drawing);
+    StampDTO getStampData(Path document);
 
-    DrawingCharacteristicsDTO getDrawingSize(File drawing);
+    DrawingCharacteristicsDTO getDrawingSize(Path document);
 
-    DrawingMetaData getDrawingMetaData(File drawing);
+    DrawingMetaData getDrawingMetaData(Path document);
 
     void getSystemVersion();
 
     void close();
 
+    void paint(long winRef);
 }

@@ -17,11 +17,11 @@ public class KsStamp {
     private ActiveXComponent ksStamp;
 
     public boolean ksClearStamp() {
-        return ksStamp.invoke("ksClearStamp", ALL_STAMP.getIndex()).getInt() == 1;
+        return ksStamp.invoke("ksClearStamp", ALL_STAMP.getIndex()).getInt() != 0;
     }
 
     public boolean ksCleanStampCell(KsStampEnum ksStampEnum) {
-        return ksStamp.invoke("ksClearStamp", ksStampEnum.getIndex()).getInt() == 1;
+        return ksStamp.invoke("ksClearStamp", ksStampEnum.getIndex()).getInt() != 0;
     }
 
     public boolean ksSetStampCell(ActiveXComponent ksTextItemParam, KsStampEnum cell, String value) {
@@ -29,7 +29,7 @@ public class KsStamp {
     }
 
     public boolean ksOpenStamp() {
-        return ksStamp.invoke("ksOpenStamp").getInt() == 1;
+        return ksStamp.invoke("ksOpenStamp").getInt() != 0;
     }
 
     public boolean ksCloseStamp() {

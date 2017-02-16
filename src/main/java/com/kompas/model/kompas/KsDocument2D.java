@@ -14,6 +14,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.io.File;
+import java.nio.file.Path;
 
 import static com.kompas.model.kompas.enums.ParamType.ALLPARAM;
 
@@ -47,18 +48,17 @@ public class KsDocument2D {
         return ksDocument2D.getProperty("reference").getInt();
     }
 
-    public boolean ksOpenDocument(String path, VisibleMode visibleMode) {
-        return ksDocument2D.invoke("ksOpenDocument", path, visibleMode.getVisibleMode()).getBoolean();
+    public boolean ksOpenDocument(Path path, VisibleMode visibleMode) {
+        return ksDocument2D.invoke("ksOpenDocument", path.toAbsolutePath().toString(), visibleMode.getVisibleMode()).getBoolean();
     }
 
-    public boolean ksSaveDocument(File drawing) {
-        return ksDocument2D.invoke("ksSaveDocument", drawing.getAbsolutePath()).getBoolean();
+    public boolean ksSaveDocument(Path drawing) {
+        return ksDocument2D.invoke("ksSaveDocument", drawing.toAbsolutePath().toString()).getBoolean();
     }
 
     public ActiveXComponent rasterFormatParam(RasterParamDTO params) {
         ActiveXComponent ksRasterFormatParam = ksDocument2D.invokeGetComponent("RasterFormatParam");
         ksRasterFormatParam.invoke("Init");
-
         ksRasterFormatParam.setProperty("colorBPP", params.getColorBPP().getIndex());
         ksRasterFormatParam.setProperty("colorType", params.getColorType().getIndex());
         ksRasterFormatParam.setProperty("extResolution", params.getExtResolution().getValue());
@@ -68,7 +68,6 @@ public class KsDocument2D {
         ksRasterFormatParam.setProperty("multiPageOutput", params.isMultiPageOutput());
         ksRasterFormatParam.setProperty("onlyThinLine", params.isOnlyThinLine());
         ksRasterFormatParam.setProperty("rangeIndex", params.getRangeIndex().getValue());
-
         return ksRasterFormatParam;
     }
 

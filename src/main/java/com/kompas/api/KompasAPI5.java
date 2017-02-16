@@ -10,8 +10,8 @@ import com.kompas.model.kompas.enums.KsStampEnum;
 import com.kompas.model.kompas.enums.documentparam.DocType;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Created by White Stream on 08.02.2017.
@@ -30,82 +30,82 @@ public class KompasAPI5 implements DrawingProgram {
     }
 
     @Override
-    public boolean openDrawing(File drawing) {
-        return kompas3D.openDrawing(drawing);
+    public boolean openDocument(Path document) {
+        return kompas3D.openDrawing(document);
     }
 
     @Override
-    public boolean saveDrawing(File drawing) {
-        return kompas3D.saveDrawing(drawing);
+    public boolean saveDocument(Path document) {
+        return kompas3D.saveDrawing(document);
     }
 
     @Override
-    public boolean closeDrawing(File drawing) {
-        return kompas3D.closeDrawing(drawing);
+    public boolean closeDocument(Path document) {
+        return kompas3D.closeDrawing(document);
     }
 
     @Override
-    public List<String> getAllTextsFromDocument(File drawing) {
-        return kompas3D.getAllTextFromDocument(drawing);
+    public List<String> getAllTextsFromDocument(Path document) {
+        return kompas3D.getAllTextFromDocument(document);
     }
 
     @Override
-    public List<String> getAllSizesFromDocument(File drawing) {
-        return kompas3D.getAllSizesFromDocument(drawing);
+    public List<String> getAllSizesFromDocument(Path document) {
+        return kompas3D.getAllSizesFromDocument(document);
     }
 
     @Override
-    public List<String> getAllTableDataFromDocument(File drawing) {
-        return kompas3D.getAllTableDataFromDocument(drawing);
+    public List<String> getAllTableDataFromDocument(Path document) {
+        return kompas3D.getAllTableDataFromDocument(document);
     }
 
     @Override
-    public boolean openStamp(File drawing) {
+    public boolean openStamp(Path drawing) {
         return kompas3D.openStamp(drawing);
     }
 
     @Override
-    public boolean closeStamp(File drawing) {
+    public boolean closeStamp(Path drawing) {
         return kompas3D.closeStamp(drawing);
     }
 
     @Override
-    public boolean cleanStamp(File drawing) {
+    public boolean cleanStamp(Path drawing) {
         return kompas3D.cleanStamp(drawing);
     }
 
     @Override
-    public boolean cleanStampCell(KsStampEnum cell, File drawing) {
+    public boolean cleanStampCell(KsStampEnum cell, Path drawing) {
         return kompas3D.cleanStampCell(cell, drawing);
     }
 
     @Override
-    public boolean setStampCellValue(KsStampEnum cell, String value, File drawing) {
+    public boolean setStampCellValue(KsStampEnum cell, String value, Path drawing) {
         return kompas3D.setStampCellValue(cell, value, drawing);
     }
 
     @Override
-    public boolean saveDrawingAsImage(RasterParamDTO params, File drawing) {
+    public boolean saveDrawingAsImage(RasterParamDTO params, Path drawing) {
         return kompas3D.saveDrawingAsImage(params, drawing);
     }
 
     @Override
-    public DocType getDocumentType(File drawing) {
+    public DocType getDocumentType(Path drawing) {
         return kompas3D.getDocumentType(drawing);
     }
 
     @Override
-    public StampDTO getStampData(File drawing) {
+    public StampDTO getStampData(Path drawing) {
         return kompas3D.getStampData(drawing);
     }
 
     @Override
-    public DrawingCharacteristicsDTO getDrawingSize(File drawing) {
+    public DrawingCharacteristicsDTO getDrawingSize(Path drawing) {
         return kompas3D.getDrawingSize(drawing);
     }
 
     @Override
-    public DrawingMetaData getDrawingMetaData(File drawing) {
+    public DrawingMetaData getDrawingMetaData(Path drawing) {
         return kompas3D.getDrawingMetaData(drawing);
     }
 
@@ -117,5 +117,10 @@ public class KompasAPI5 implements DrawingProgram {
     @Override
     public void close() {
         kompas3D.close();
+    }
+
+    @Override
+    public void paint(long winRef) {
+        kompas3D.paint(winRef);
     }
 }

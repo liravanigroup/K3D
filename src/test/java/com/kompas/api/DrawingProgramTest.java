@@ -1,21 +1,27 @@
 package com.kompas.api;
 
+import com.jacob.activeX.ActiveXComponent;
 import com.kompas.model.dto.RasterParamDTO;
 import com.kompas.model.kompas.DrawingMetaData;
 import com.kompas.model.kompas.enums.KsStampEnum;
 import com.kompas.model.kompas.enums.documentparam.DocType;
 import com.kompas.model.kompas.enums.rasterparam.*;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
+import com.sun.jna.platform.win32.WinUser;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import sun.awt.windows.WComponentPeer;
 
-import java.io.File;
+import javax.swing.*;
+import java.awt.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Created by White Stream on 09.02.2017.
@@ -23,17 +29,19 @@ import static org.junit.Assert.assertTrue;
 public class DrawingProgramTest {
 
     private static DrawingProgram drawingProgram;
-    private File DRAWING_FRW = new File("src/test/resources/fixtures/plan.frw");
-    private File DRAWING_DWG = new File("src/test/resources/fixtures/autocad.dwg");
-    private File DRAWING_CDW_1 = new File("src/test/resources/fixtures/Корпус-А2.cdw");
-    private File DRAWING_CDW_2 = new File("src/test/resources/fixtures/ГОТОВО.cdw");
-    private File DRAWING_CDW_METADATA = new File("src/test/resources/fixtures/A4_metadata.cdw");
-    private File DRAWING_CDW_SIZES = new File("src/test/resources/fixtures/A4_sizes.cdw");
-    private File DRAWING_CDW_STAMP = new File("src/test/resources/fixtures/stamp_data.cdw");
-    private File DRAWING_CDW_STAMP_CLEAN = new File("src/test/resources/fixtures/stamp_clean.cdw");
-    private File DRAWING_CDW_MANUAL_SIZE = new File("src/test/resources/fixtures/manual_size.cdw");
-    private File DRAWING_CDW_TABLE = new File("src/test/resources/fixtures/table_test.cdw");
-    private File DRAWING_CDW_DIAMETER_SIZES = new File("src/test/resources/fixtures/diameter_sizes.cdw");
+    private Path DRAWING_DWG = Paths.get("src/test/resources/fixtures/autocad.dwg");
+    private Path DRAWING_FRW = Paths.get("src/test/resources/fixtures/plan.frw");
+    private Path DRAWING_CDW_1 = Paths.get("src/test/resources/fixtures/Корпус-А2.cdw");
+    private Path DRAWING_CDW_2 = Paths.get("src/test/resources/fixtures/ГОТОВО.cdw");
+    private Path DRAWING_CDW_METADATA = Paths.get("src/test/resources/fixtures/A4_metadata.cdw");
+    private Path DRAWING_CDW_SIZES = Paths.get("src/test/resources/fixtures/A4_sizes.cdw");
+    private Path DRAWING_CDW_STAMP = Paths.get("src/test/resources/fixtures/stamp_data.cdw");
+    private Path DRAWING_CDW_STAMP_CLEAN = Paths.get("src/test/resources/fixtures/stamp_clean.cdw");
+    private Path DRAWING_CDW_MANUAL_SIZE = Paths.get("src/test/resources/fixtures/manual_size.cdw");
+    private Path DRAWING_CDW_TABLE = Paths.get("src/test/resources/fixtures/table_test.cdw");
+    private Path DRAWING_CDW_DIAMETER_SIZES = Paths.get("src/test/resources/fixtures/diameter_sizes.cdw");
+
+    private Path SPECIFICATION = Paths.get("src/test/resources/fixtures/specifications/spec.spw");
 
     @BeforeClass
     public static void initDrawingProgram() {
@@ -54,10 +62,10 @@ public class DrawingProgramTest {
     @Test
     public void shouldOpenDrawing() {
         //when
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_1);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_1);
 
         //then
-        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_1);
+        boolean isClosed = drawingProgram.closeDocument(DRAWING_CDW_1);
         assertTrue(isOpened);
         assertTrue(isClosed);
     }
@@ -65,10 +73,10 @@ public class DrawingProgramTest {
     @Test
     public void shouldOpenFRWDocument(){
         //when
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_FRW);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_FRW);
 
         //then
-        boolean isClosed = drawingProgram.closeDrawing(DRAWING_FRW);
+        boolean isClosed = drawingProgram.closeDocument(DRAWING_FRW);
         assertTrue(isOpened);
         assertTrue(isClosed);
     }
@@ -77,10 +85,10 @@ public class DrawingProgramTest {
     @Ignore
     public void shouldOpenDWGDocument(){
         //when
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_DWG);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_DWG);
 
         //then
-        boolean isClosed = drawingProgram.closeDrawing(DRAWING_DWG);
+        boolean isClosed = drawingProgram.closeDocument(DRAWING_DWG);
         assertTrue(isOpened);
         assertTrue(isClosed);
     }
@@ -88,10 +96,10 @@ public class DrawingProgramTest {
     @Test
     public void shouldCloseDrawing() {
         //given
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_1);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_1);
 
         //when
-        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_1);
+        boolean isClosed = drawingProgram.closeDocument(DRAWING_CDW_1);
 
         //then
         assertTrue(isOpened);
@@ -101,12 +109,12 @@ public class DrawingProgramTest {
     @Test
     public void shouldCloseOneOfBothDocuments(){
         //given
-        boolean isOpened1 = drawingProgram.openDrawing(DRAWING_CDW_1);
-        boolean isOpened2 = drawingProgram.openDrawing(DRAWING_CDW_2);
+        boolean isOpened1 = drawingProgram.openDocument(DRAWING_CDW_1);
+        boolean isOpened2 = drawingProgram.openDocument(DRAWING_CDW_2);
 
         //when
-        boolean isClosed1 = drawingProgram.closeDrawing(DRAWING_CDW_1);
-        boolean isClosed2 = drawingProgram.closeDrawing(DRAWING_CDW_2);
+        boolean isClosed1 = drawingProgram.closeDocument(DRAWING_CDW_1);
+        boolean isClosed2 = drawingProgram.closeDocument(DRAWING_CDW_2);
 
         //then
         assertTrue(isOpened1);
@@ -118,27 +126,27 @@ public class DrawingProgramTest {
     @Test
     public void shouldFindAllText(){
         //given
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_2);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_2);
 
         //when
         List<String> result = drawingProgram.getAllTextsFromDocument(DRAWING_CDW_2);
 
         //then
-        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_2);
+        boolean isClosed = drawingProgram.closeDocument(DRAWING_CDW_2);
         assertTrue(result.size() > 0);
     }
 
     @Test
     public void shouldFindAllSizes(){
         //given
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_DIAMETER_SIZES);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_DIAMETER_SIZES);
 
         //when
         List<String> result = drawingProgram.getAllSizesFromDocument(DRAWING_CDW_DIAMETER_SIZES);
         System.out.println(result);
 
         //then
-        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_DIAMETER_SIZES);
+        boolean isClosed = drawingProgram.closeDocument(DRAWING_CDW_DIAMETER_SIZES);
         assertTrue(isOpened);
         assertTrue(isClosed);
         assertTrue(result.size() > 0);
@@ -147,7 +155,7 @@ public class DrawingProgramTest {
     @Test
     public void shouldGetDrawingMetaData(){
         //given
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_METADATA);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_METADATA);
 
         //when
         DrawingMetaData result = drawingProgram.getDrawingMetaData(DRAWING_CDW_METADATA);
@@ -163,7 +171,7 @@ public class DrawingProgramTest {
     @Test
     public void shouldOpenStamp() {
         //given
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_STAMP);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_STAMP);
 
         //when
         boolean isOpenedStamp = drawingProgram.openStamp(DRAWING_CDW_STAMP);
@@ -178,7 +186,7 @@ public class DrawingProgramTest {
     @Test
     public void shouldCleanStamp() {
         //given
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_STAMP);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_STAMP);
         boolean isOpenedStamp = drawingProgram.openStamp(DRAWING_CDW_STAMP);
 
         //when
@@ -195,16 +203,16 @@ public class DrawingProgramTest {
     @Test
     public void shouldCleanAndSave(){
         //given
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_STAMP_CLEAN);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_STAMP_CLEAN);
 
         //when
         boolean isOpenedStamp = drawingProgram.openStamp(DRAWING_CDW_STAMP_CLEAN);
         boolean isCleanedStamp = drawingProgram.cleanStamp(DRAWING_CDW_STAMP_CLEAN);
         boolean isClosedStamp = drawingProgram.closeStamp(DRAWING_CDW_STAMP_CLEAN);
-        boolean isSaved = drawingProgram.saveDrawing(DRAWING_CDW_STAMP_CLEAN);
+        boolean isSaved = drawingProgram.saveDocument(DRAWING_CDW_STAMP_CLEAN);
 
         //then
-        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_STAMP_CLEAN);
+        boolean isClosed = drawingProgram.closeDocument(DRAWING_CDW_STAMP_CLEAN);
         assertTrue(isOpened);
         assertTrue(isOpenedStamp);
         assertTrue(isCleanedStamp);
@@ -216,16 +224,16 @@ public class DrawingProgramTest {
     @Test
     public void shouldCleanStampSellAndSave(){
         //given
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_STAMP_CLEAN);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_STAMP_CLEAN);
 
         //when
         boolean isOpenedStamp = drawingProgram.openStamp(DRAWING_CDW_STAMP_CLEAN);
         boolean isCleanedStamp = drawingProgram.cleanStampCell(KsStampEnum.ksStPartNumber, DRAWING_CDW_STAMP_CLEAN);
         boolean isClosedStamp = drawingProgram.closeStamp(DRAWING_CDW_STAMP_CLEAN);
-        boolean isSaved = drawingProgram.saveDrawing(DRAWING_CDW_STAMP_CLEAN);
+        boolean isSaved = drawingProgram.saveDocument(DRAWING_CDW_STAMP_CLEAN);
 
         //then
-        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_STAMP_CLEAN);
+        boolean isClosed = drawingProgram.closeDocument(DRAWING_CDW_STAMP_CLEAN);
         assertTrue(isOpened);
         assertTrue(isOpenedStamp);
         assertTrue(isCleanedStamp);
@@ -237,7 +245,7 @@ public class DrawingProgramTest {
     @Test
     public void shouldSetDataToStamp(){
         //given
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_STAMP_CLEAN);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_STAMP_CLEAN);
 
         //when
         boolean isOpenedStamp = drawingProgram.openStamp(DRAWING_CDW_STAMP_CLEAN);
@@ -258,10 +266,10 @@ public class DrawingProgramTest {
 
 
         boolean isClosedStamp = drawingProgram.closeStamp(DRAWING_CDW_STAMP_CLEAN);
-        boolean isSaved = drawingProgram.saveDrawing(DRAWING_CDW_STAMP_CLEAN);
+        boolean isSaved = drawingProgram.saveDocument(DRAWING_CDW_STAMP_CLEAN);
 
         //then
-        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_STAMP_CLEAN);
+        boolean isClosed = drawingProgram.closeDocument(DRAWING_CDW_STAMP_CLEAN);
         assertTrue(isOpened);
         assertTrue(isOpenedStamp);
         assertTrue(isCleanedStamp);
@@ -273,7 +281,7 @@ public class DrawingProgramTest {
     @Test
     public void shouldGetAllStampData(){
         //given
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_STAMP);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_STAMP);
         boolean isOpenedStamp = drawingProgram.openStamp(DRAWING_CDW_STAMP);
 
         //when
@@ -281,7 +289,7 @@ public class DrawingProgramTest {
 
         //then
         boolean isClosedStamp = drawingProgram.closeStamp(DRAWING_CDW_STAMP);
-        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_STAMP);
+        boolean isClosed = drawingProgram.closeDocument(DRAWING_CDW_STAMP);
         assertTrue(isOpened);
         assertTrue(isOpenedStamp);
         assertTrue(isClosedStamp);
@@ -291,13 +299,13 @@ public class DrawingProgramTest {
     @Test
     public void shouldGetDocumentType(){
         //given
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_METADATA);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_METADATA);
 
         //when
         DocType docType = drawingProgram.getDocumentType(DRAWING_CDW_METADATA);
 
         //then
-        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_METADATA);
+        boolean isClosed = drawingProgram.closeDocument(DRAWING_CDW_METADATA);
         assertTrue(isOpened);
         assertEquals(DocType.lt_DocSheetStandart, docType);
         assertTrue(isClosed);
@@ -306,43 +314,43 @@ public class DrawingProgramTest {
     @Test
     public void shouldGetDrawingSize(){
         //given
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_METADATA);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_METADATA);
 
         //when
         System.out.println(drawingProgram.getDrawingSize(DRAWING_CDW_METADATA));
 
         //then
-        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_METADATA);
+        boolean isClosed = drawingProgram.closeDocument(DRAWING_CDW_METADATA);
     }
 
     @Test
     public void shouldGetManualSize(){
         //given
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_MANUAL_SIZE);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_MANUAL_SIZE);
 
         //when
         System.out.println(drawingProgram.getDrawingSize(DRAWING_CDW_MANUAL_SIZE));
 
         //then
-        boolean isClosed = drawingProgram.closeDrawing(DRAWING_CDW_MANUAL_SIZE);
+        boolean isClosed = drawingProgram.closeDocument(DRAWING_CDW_MANUAL_SIZE);
     }
 
     @Test
     public void shouldGetFragmentSize(){
         //given
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_FRW);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_FRW);
 
         //when
         System.out.println(drawingProgram.getDrawingSize(DRAWING_FRW));
 
         //then
-        boolean isClosed = drawingProgram.closeDrawing(DRAWING_FRW);
+        boolean isClosed = drawingProgram.closeDocument(DRAWING_FRW);
     }
 
     @Test
     public void shouldSaveDrawingAsImage(){
         //given
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_FRW);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_FRW);
 
         //when
         RasterParamDTO params = new RasterParamDTO();
@@ -366,7 +374,7 @@ public class DrawingProgramTest {
     @Test
     public void shouldGetTableData(){
         //given
-        boolean isOpened = drawingProgram.openDrawing(DRAWING_CDW_TABLE);
+        boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_TABLE);
 
         //when
         System.out.println(drawingProgram.getAllTableDataFromDocument(DRAWING_CDW_TABLE));
@@ -380,5 +388,26 @@ public class DrawingProgramTest {
     public void shouldGetSystemVersion(){
         drawingProgram.getSystemVersion();
     }
+
+
+
+
+    @Test
+    public void shouldOpenSpecification(){
+        //when
+        boolean isOpened = drawingProgram.openDocument(SPECIFICATION);
+
+        //then
+        assertTrue(isOpened);
+        drawingProgram.closeDocument(SPECIFICATION);
+    }
+
+    @Test
+    public void shouldOpenDrawingInWindow(){
+//        JPanel.
+//
+////        drawingProgram.paint(winRef);
+    }
+
 
 }

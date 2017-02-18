@@ -7,7 +7,8 @@ import com.kompas.model.kompas.DrawingMetaData;
 import com.kompas.model.kompas.enums.KsStampEnum;
 import com.kompas.model.kompas.enums.documentparam.DocType;
 
-import java.io.File;
+import javax.swing.*;
+import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.List;
 

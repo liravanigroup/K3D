@@ -13,7 +13,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import java.io.File;
 import java.nio.file.Path;
 
 import static com.kompas.model.kompas.enums.ParamType.ALLPARAM;

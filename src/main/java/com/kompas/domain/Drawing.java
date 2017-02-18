@@ -3,7 +3,10 @@ package com.kompas.domain;
 import com.kompas.model.dto.DrawingCharacteristicsDTO;
 import com.kompas.model.dto.StampDTO;
 import com.kompas.model.kompas.DrawingMetaData;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.File;
 

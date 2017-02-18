@@ -1,22 +1,16 @@
 package com.kompas.api;
 
-import com.jacob.activeX.ActiveXComponent;
 import com.kompas.model.dto.RasterParamDTO;
 import com.kompas.model.kompas.DrawingMetaData;
 import com.kompas.model.kompas.enums.KsStampEnum;
 import com.kompas.model.kompas.enums.documentparam.DocType;
 import com.kompas.model.kompas.enums.rasterparam.*;
-import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.WinDef;
-import com.sun.jna.platform.win32.WinUser;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import sun.awt.windows.WComponentPeer;
 
-import javax.swing.*;
-import java.awt.*;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -71,7 +65,7 @@ public class DrawingProgramTest {
     }
 
     @Test
-    public void shouldOpenFRWDocument(){
+    public void shouldOpenFRWDocument() {
         //when
         boolean isOpened = drawingProgram.openDocument(DRAWING_FRW);
 
@@ -83,7 +77,7 @@ public class DrawingProgramTest {
 
     @Test
     @Ignore
-    public void shouldOpenDWGDocument(){
+    public void shouldOpenDWGDocument() {
         //when
         boolean isOpened = drawingProgram.openDocument(DRAWING_DWG);
 
@@ -107,7 +101,7 @@ public class DrawingProgramTest {
     }
 
     @Test
-    public void shouldCloseOneOfBothDocuments(){
+    public void shouldCloseOneOfBothDocuments() {
         //given
         boolean isOpened1 = drawingProgram.openDocument(DRAWING_CDW_1);
         boolean isOpened2 = drawingProgram.openDocument(DRAWING_CDW_2);
@@ -124,7 +118,7 @@ public class DrawingProgramTest {
     }
 
     @Test
-    public void shouldFindAllText(){
+    public void shouldFindAllText() {
         //given
         boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_2);
 
@@ -137,7 +131,7 @@ public class DrawingProgramTest {
     }
 
     @Test
-    public void shouldFindAllSizes(){
+    public void shouldFindAllSizes() {
         //given
         boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_DIAMETER_SIZES);
 
@@ -153,7 +147,7 @@ public class DrawingProgramTest {
     }
 
     @Test
-    public void shouldGetDrawingMetaData(){
+    public void shouldGetDrawingMetaData() {
         //given
         boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_METADATA);
 
@@ -201,7 +195,7 @@ public class DrawingProgramTest {
     }
 
     @Test
-    public void shouldCleanAndSave(){
+    public void shouldCleanAndSave() {
         //given
         boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_STAMP_CLEAN);
 
@@ -222,7 +216,7 @@ public class DrawingProgramTest {
     }
 
     @Test
-    public void shouldCleanStampSellAndSave(){
+    public void shouldCleanStampSellAndSave() {
         //given
         boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_STAMP_CLEAN);
 
@@ -243,7 +237,7 @@ public class DrawingProgramTest {
     }
 
     @Test
-    public void shouldSetDataToStamp(){
+    public void shouldSetDataToStamp() {
         //given
         boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_STAMP_CLEAN);
 
@@ -279,7 +273,7 @@ public class DrawingProgramTest {
     }
 
     @Test
-    public void shouldGetAllStampData(){
+    public void shouldGetAllStampData() {
         //given
         boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_STAMP);
         boolean isOpenedStamp = drawingProgram.openStamp(DRAWING_CDW_STAMP);
@@ -297,7 +291,7 @@ public class DrawingProgramTest {
     }
 
     @Test
-    public void shouldGetDocumentType(){
+    public void shouldGetDocumentType() {
         //given
         boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_METADATA);
 
@@ -312,7 +306,7 @@ public class DrawingProgramTest {
     }
 
     @Test
-    public void shouldGetDrawingSize(){
+    public void shouldGetDrawingSize() {
         //given
         boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_METADATA);
 
@@ -324,7 +318,7 @@ public class DrawingProgramTest {
     }
 
     @Test
-    public void shouldGetManualSize(){
+    public void shouldGetManualSize() {
         //given
         boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_MANUAL_SIZE);
 
@@ -336,7 +330,7 @@ public class DrawingProgramTest {
     }
 
     @Test
-    public void shouldGetFragmentSize(){
+    public void shouldGetFragmentSize() {
         //given
         boolean isOpened = drawingProgram.openDocument(DRAWING_FRW);
 
@@ -348,7 +342,7 @@ public class DrawingProgramTest {
     }
 
     @Test
-    public void shouldSaveDrawingAsImage(){
+    public void shouldSaveDrawingAsImage() {
         //given
         boolean isOpened = drawingProgram.openDocument(DRAWING_FRW);
 
@@ -372,7 +366,7 @@ public class DrawingProgramTest {
     }
 
     @Test
-    public void shouldGetTableData(){
+    public void shouldGetTableData() {
         //given
         boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_TABLE);
 
@@ -385,15 +379,13 @@ public class DrawingProgramTest {
     }
 
     @Test
-    public void shouldGetSystemVersion(){
+    public void shouldGetSystemVersion() {
         drawingProgram.getSystemVersion();
     }
 
 
-
-
     @Test
-    public void shouldOpenSpecification(){
+    public void shouldOpenSpecification() {
         //when
         boolean isOpened = drawingProgram.openDocument(SPECIFICATION);
 
@@ -402,11 +394,11 @@ public class DrawingProgramTest {
         drawingProgram.closeDocument(SPECIFICATION);
     }
 
+
+
     @Test
-    public void shouldOpenDrawingInWindow(){
-//        JPanel.
-//
-////        drawingProgram.paint(winRef);
+    public void shouldOpenDrawingInWindow() throws InterruptedException, IOException {
+
     }
 
 

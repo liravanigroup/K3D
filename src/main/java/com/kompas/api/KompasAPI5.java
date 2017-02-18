@@ -9,7 +9,8 @@ import com.kompas.model.kompas.Kompas3D;
 import com.kompas.model.kompas.enums.KsStampEnum;
 import com.kompas.model.kompas.enums.documentparam.DocType;
 
-import java.io.File;
+import javax.swing.*;
+import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -121,6 +122,6 @@ public class KompasAPI5 implements DrawingProgram {
 
     @Override
     public void paint(long winRef) {
-        kompas3D.paint(winRef);
+       kompas3D.paint(winRef);
     }
 }

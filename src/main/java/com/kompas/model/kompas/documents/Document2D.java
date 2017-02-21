@@ -1,9 +1,13 @@
-package com.kompas.model.kompas;
+package com.kompas.model.kompas.documents;
 
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Variant;
+import com.kompas.model.Document;
 import com.kompas.model.dto.RasterParamDTO;
 import com.kompas.model.dto.StampDTO;
+import com.kompas.model.kompas.DocumentMetaData;
+import com.kompas.model.kompas.Kompas3D;
+import com.kompas.model.kompas.KsStamp;
 import com.kompas.model.kompas.enums.KsStampEnum;
 import com.kompas.model.kompas.enums.ParamType;
 import com.kompas.model.kompas.enums.SettingsType;
@@ -14,6 +18,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static com.kompas.model.kompas.enums.ParamType.ALLPARAM;
 
@@ -22,37 +27,21 @@ import static com.kompas.model.kompas.enums.ParamType.ALLPARAM;
  */
 @RequiredArgsConstructor
 @EqualsAndHashCode
-public class KsDocument2D {
+public class Document2D implements Document {
     @NonNull
     private ActiveXComponent ksDocument2D;
     private KsStamp ksStamp;
 
-    public DrawingMetaData getFileData(ActiveXComponent ksDocumentParam) {
+    public DocumentMetaData getFileData(ActiveXComponent ksDocumentParam) {
         ksDocumentParam.invoke("Init");
         ksGetObjParam(ALLPARAM, new Variant(ksDocumentParam));
-
-        DrawingMetaData metaData = new DrawingMetaData();
+        DocumentMetaData metaData = new DocumentMetaData();
         metaData.setAuthor(ksDocumentParam.getProperty("author").getString());
         metaData.setComment(ksDocumentParam.getProperty("comment").getString());
         metaData.setFileName(ksDocumentParam.getProperty("fileName").getString());
         metaData.setRegime(ksDocumentParam.getProperty("regime").getInt());
         metaData.setDocType(DocType.valueOf(ksDocumentParam.getProperty("type").getInt()));
-
-
-
         return metaData;
-    }
-
-    public long getReference() {
-        return ksDocument2D.getProperty("reference").getInt();
-    }
-
-    public boolean ksOpenDocument(Path path, VisibleMode visibleMode) {
-        return ksDocument2D.invoke("ksOpenDocument", path.toAbsolutePath().toString(), visibleMode.getVisibleMode()).getBoolean();
-    }
-
-    public boolean ksSaveDocument(Path drawing) {
-        return ksDocument2D.invoke("ksSaveDocument", drawing.toAbsolutePath().toString()).getBoolean();
     }
 
     public ActiveXComponent rasterFormatParam(RasterParamDTO params) {
@@ -117,9 +106,6 @@ public class KsDocument2D {
         return ksStamp.getStampDTO(ksTextLineParam, ksTextItemParam);
     }
 
-    public boolean ksCloseDocument() {
-        return ksDocument2D.invoke("ksCloseDocument").getBoolean();
-    }
 
     public void ksGetObjGabaritRect(long reference, ActiveXComponent ko_rectParam) {
         ksDocument2D.invoke("ksGetObjGabaritRect", new Variant(reference), new Variant(ko_rectParam));
@@ -136,4 +122,37 @@ public class KsDocument2D {
     public boolean ksGetTableColumnText(Variant variant, ActiveXComponent ksTextParam) {
         return ksDocument2D.invoke("ksGetTableColumnText", variant, new Variant(ksTextParam)).getInt() != 0;
     }
+
+    public Path getPath(ActiveXComponent ksDocumentParam) {
+        ksDocumentParam.invoke("Init");
+        ksGetObjParam(ALLPARAM, new Variant(ksDocumentParam));
+        return Paths.get(ksDocumentParam.getProperty("fileName").getString()).toAbsolutePath();
+    }
+
+    @Override
+    public Document getActiveDocument(Kompas3D kompas) {
+        return kompas.getActiveDocument2D();
+    }
+
+
+    @Override
+    public boolean openDocument(Path path, VisibleMode visibleMode) {
+        return ksDocument2D.invoke("ksOpenDocument", path.toAbsolutePath().toString(), visibleMode.getVisibleMode()).getBoolean();
+    }
+
+    @Override
+    public boolean closeDocument() {
+        return ksDocument2D.invoke("ksCloseDocument").getBoolean();
+    }
+
+    @Override
+    public long getReference() {
+        return ksDocument2D.getProperty("reference").getLong();
+    }
+
+    @Override
+    public boolean saveDocument(Path document) {
+        return ksDocument2D.invoke("ksSaveDocument", document.toAbsolutePath().toString()).getBoolean();
+    }
+
 }

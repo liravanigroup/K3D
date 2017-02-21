@@ -1,7 +1,7 @@
 package com.kompas.api;
 
 import com.kompas.model.dto.RasterParamDTO;
-import com.kompas.model.kompas.DrawingMetaData;
+import com.kompas.model.kompas.DocumentMetaData;
 import com.kompas.model.kompas.enums.KsStampEnum;
 import com.kompas.model.kompas.enums.documentparam.DocType;
 import com.kompas.model.kompas.enums.rasterparam.*;
@@ -11,6 +11,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -24,7 +25,7 @@ public class DrawingProgramTest {
 
     private static DrawingProgram drawingProgram;
     private Path DRAWING_DWG = Paths.get("src/test/resources/fixtures/autocad.dwg");
-    private Path DRAWING_FRW = Paths.get("src/test/resources/fixtures/plan.frw");
+    private Path DRAWING_FRW = Paths.get("C:\\Users\\Amsterdam\\IdeaProjects\\K3D\\K3D\\src\\test\\resources\\fixtures\\kompas\\fragments\\plan.frw");
     private Path DRAWING_CDW_1 = Paths.get("src/test/resources/fixtures/Корпус-А2.cdw");
     private Path DRAWING_CDW_2 = Paths.get("src/test/resources/fixtures/ГОТОВО.cdw");
     private Path DRAWING_CDW_METADATA = Paths.get("src/test/resources/fixtures/A4_metadata.cdw");
@@ -32,10 +33,11 @@ public class DrawingProgramTest {
     private Path DRAWING_CDW_STAMP = Paths.get("src/test/resources/fixtures/stamp_data.cdw");
     private Path DRAWING_CDW_STAMP_CLEAN = Paths.get("src/test/resources/fixtures/stamp_clean.cdw");
     private Path DRAWING_CDW_MANUAL_SIZE = Paths.get("src/test/resources/fixtures/manual_size.cdw");
-    private Path DRAWING_CDW_TABLE = Paths.get("src/test/resources/fixtures/table_test.cdw");
+    private Path DRAWING_CDW_TABLE = Paths.get("src\\test\\resources\\fixtures\\kompas\\drawings\\tables\\table_test.cdw");
+    private Path DRAWING_CDW_EMPTY_TABLE = Paths.get("src\\test\\resources\\fixtures\\kompas\\drawings\\tables\\empty_table_test.cdw");
     private Path DRAWING_CDW_DIAMETER_SIZES = Paths.get("src/test/resources/fixtures/diameter_sizes.cdw");
 
-    private Path SPECIFICATION = Paths.get("src/test/resources/fixtures/specifications/spec.spw");
+    private Path SPECIFICATION = Paths.get("src/test/resources/fixtures/kompas/specifications/spec.spw");
 
     @BeforeClass
     public static void initDrawingProgram() {
@@ -52,6 +54,7 @@ public class DrawingProgramTest {
     public void shouldOpenDrawingProgram() throws Exception {
         assertNotNull(drawingProgram);
     }
+
 
     @Test
     public void shouldOpenDrawing() {
@@ -152,7 +155,7 @@ public class DrawingProgramTest {
         boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_METADATA);
 
         //when
-        DrawingMetaData result = drawingProgram.getDrawingMetaData(DRAWING_CDW_METADATA);
+        DocumentMetaData result = drawingProgram.getDrawingMetaData(DRAWING_CDW_METADATA);
 
         System.out.println(result.getAuthor());
         System.out.println(result.getComment());
@@ -342,11 +345,10 @@ public class DrawingProgramTest {
     }
 
     @Test
-    public void shouldSaveDrawingAsImage() {
+    public void shouldSaveDrawingAsImage() throws IOException {
         //given
         boolean isOpened = drawingProgram.openDocument(DRAWING_FRW);
-
-        //when
+        Path path = Paths.get("C:\\Users\\Amsterdam\\IdeaProjects\\K3D\\K3D\\src\\test\\resources\\fixtures\\kompas\\fragments\\plan.jpeg");
         RasterParamDTO params = new RasterParamDTO();
 
         params.setColorBPP(ColorBPP.PP_COLOR_24);
@@ -359,10 +361,15 @@ public class DrawingProgramTest {
         params.setOnlyThinLine(false);
         params.setRangeIndex(RangeIndex.ALL_PAGES);
 
-        System.out.println(drawingProgram.saveDrawingAsImage(params, DRAWING_FRW));
+        //when
+        drawingProgram.saveDrawingAsImage(params, DRAWING_FRW);
 
         //then
+        assertTrue(isOpened);
+        assertTrue(Files.exists(path));
 
+        //cleaning
+        Files.delete(path);
     }
 
     @Test
@@ -371,18 +378,29 @@ public class DrawingProgramTest {
         boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_TABLE);
 
         //when
-        System.out.println(drawingProgram.getAllTableDataFromDocument(DRAWING_CDW_TABLE));
+        List<String> tableDateList = drawingProgram.getAllTableDataFromDocument(DRAWING_CDW_TABLE);
 
         //then
+        assertEquals(2, tableDateList.size());
 
-
+        //cleaning
+        drawingProgram.closeDocument(DRAWING_CDW_TABLE);
     }
 
     @Test
-    public void shouldGetSystemVersion() {
-        drawingProgram.getSystemVersion();
-    }
+    public void shouldGetEmptyListOfTableData() {
+        //given
+        boolean isOpened = drawingProgram.openDocument(DRAWING_CDW_EMPTY_TABLE);
 
+        //when
+        List<String> tableDateList = drawingProgram.getAllTableDataFromDocument(DRAWING_CDW_EMPTY_TABLE);
+
+        //then
+        assertEquals(0, tableDateList.size());
+
+        //cleaning
+        drawingProgram.closeDocument(DRAWING_CDW_EMPTY_TABLE);
+    }
 
     @Test
     public void shouldOpenSpecification() {
@@ -391,15 +409,22 @@ public class DrawingProgramTest {
 
         //then
         assertTrue(isOpened);
-        drawingProgram.closeDocument(SPECIFICATION);
+
+        //cleaning
+        boolean isClosed = drawingProgram.closeDocument(SPECIFICATION);
+        assertTrue(isClosed);
     }
-
-
 
     @Test
-    public void shouldOpenDrawingInWindow() throws InterruptedException, IOException {
+    public void shouldCloseSpecification(){
+        //given
+        boolean isOpened = drawingProgram.openDocument(SPECIFICATION);
+        assertTrue(isOpened);
 
+        //when
+        boolean isClosed = drawingProgram.closeDocument(SPECIFICATION);
+
+        //then
+        assertTrue(isClosed);
     }
-
-
 }

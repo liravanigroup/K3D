@@ -4,13 +4,11 @@ import com.kompas.infrastructure.PropertyReader;
 import com.kompas.model.dto.DrawingCharacteristicsDTO;
 import com.kompas.model.dto.RasterParamDTO;
 import com.kompas.model.dto.StampDTO;
-import com.kompas.model.kompas.DrawingMetaData;
+import com.kompas.model.kompas.DocumentMetaData;
 import com.kompas.model.kompas.Kompas3D;
 import com.kompas.model.kompas.enums.KsStampEnum;
 import com.kompas.model.kompas.enums.documentparam.DocType;
 
-import javax.swing.*;
-import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -32,7 +30,7 @@ public class KompasAPI5 implements DrawingProgram {
 
     @Override
     public boolean openDocument(Path document) {
-        return kompas3D.openDrawing(document);
+        return kompas3D.openDocument(document);
     }
 
     @Override
@@ -42,12 +40,22 @@ public class KompasAPI5 implements DrawingProgram {
 
     @Override
     public boolean closeDocument(Path document) {
-        return kompas3D.closeDrawing(document);
+        return kompas3D.closeDocument(document);
     }
 
     @Override
     public List<String> getAllTextsFromDocument(Path document) {
         return kompas3D.getAllTextFromDocument(document);
+    }
+
+    @Override
+    public List<String> getAllHeightMartSizesFromDocument(Path document) {
+        return kompas3D.getAllHeightMartSizesFromDocument(document);
+    }
+
+    @Override
+    public List<String> getAllLineSizesFromDocument(Path document) {
+        return kompas3D.getAllLineSizesFromDocument(document);
     }
 
     @Override
@@ -106,7 +114,7 @@ public class KompasAPI5 implements DrawingProgram {
     }
 
     @Override
-    public DrawingMetaData getDrawingMetaData(Path drawing) {
+    public DocumentMetaData getDrawingMetaData(Path drawing) {
         return kompas3D.getDrawingMetaData(drawing);
     }
 
@@ -121,7 +129,12 @@ public class KompasAPI5 implements DrawingProgram {
     }
 
     @Override
-    public void paint(long winRef) {
-       kompas3D.paint(winRef);
+    public void drawDocumentInWindow(long winRef, Path document) {
+       kompas3D.drawDocumentInWindow(winRef, document);
+    }
+
+    @Override
+    public boolean isSameDocument(Path document1, Path document2) {
+        return false;
     }
 }

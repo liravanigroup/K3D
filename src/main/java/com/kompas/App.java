@@ -103,8 +103,8 @@ public class App extends Application {
 //        long ref = com.sun.glass.ui.Window.getWindows().get(0).getView().getNativeView();
 //        long ref2 = com.sun.glass.ui.Window.getFocusedWindow().getNativeHandle();
 
-//        drawingProgram.paint(ref);
-//        drawingProgram.paint(ref2);
+//        drawingProgram.drawDocumentInWindow(ref);
+//        drawingProgram.drawDocumentInWindow(ref2);
 
 
 //        drawingProgram.close();

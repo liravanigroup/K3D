@@ -3,32 +3,39 @@ package com.kompas.model.kompas;
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Variant;
 import com.kompas.infrastructure.PropertyReader;
+import com.kompas.model.Document;
 import com.kompas.model.dto.DrawingCharacteristicsDTO;
 import com.kompas.model.dto.RasterParamDTO;
 import com.kompas.model.dto.StampDTO;
 import com.kompas.model.kompas.datastructure.KsDynamicArray;
+import com.kompas.model.kompas.documents.Document2D;
+import com.kompas.model.kompas.documents.SpcDocument;
 import com.kompas.model.kompas.enums.KsStampEnum;
-import com.kompas.model.kompas.enums.NavigationMode;
 import com.kompas.model.kompas.enums.ParamType;
+import com.kompas.model.kompas.enums.SizeSing;
 import com.kompas.model.kompas.enums.StructType2D;
 import com.kompas.model.kompas.enums.documentparam.DocType;
+import com.kompas.model.kompas.enums.documentparam.SheetType;
 import com.kompas.model.kompas.enums.kompasparam.VisibleMode;
 import com.kompas.model.metrics.Size;
+import com.kompas.model.templates.GraphicTemplate;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.nio.file.Path;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.io.Files.getFileExtension;
+import static com.kompas.model.kompas.enums.DynamicArrayType.CHAR_STR_ARR;
+import static com.kompas.model.kompas.enums.DynamicArrayType.TEXT_LINE_ARR;
 import static com.kompas.model.kompas.enums.NavigationMode.*;
+import static com.kompas.model.kompas.enums.ParamType.DIM_VALUE;
 import static com.kompas.model.kompas.enums.SettingsType.SHEET_OPTIONS_EX;
 import static com.kompas.model.kompas.enums.StructType2D.ko_SheetOptions;
 import static com.kompas.model.kompas.enums.documentparam.DocType.*;
 import static com.kompas.model.kompas.enums.documentparam.Orientation.valueOf;
 import static com.kompas.model.kompas.enums.documentparam.SheetFormat.valueOf;
+import static com.kompas.model.kompas.enums.sizes.SizeOption._AUTONOMINAL;
 import static com.kompas.service.SizeConverter.*;
 
 public class Kompas3D {
@@ -56,8 +63,7 @@ public class Kompas3D {
 
     private PropertyReader property;
 
-    private List<KsDocument2D> drawings = new ArrayList<>();
-    private List<SpcDocument> specifications = new ArrayList<>();
+    private List<Document> openedDocuments = new ArrayList<>();
 
     public Kompas3D(PropertyReader property) {
         this.property = property;
@@ -76,14 +82,12 @@ public class Kompas3D {
         this.ksStandartSheet = getParamStruct(StructType2D.ko_StandartSheet);
         this.ksSheetOptions = getParamStruct(ko_SheetOptions);
         this.ksSheetPar = getParamStruct(StructType2D.ko_SheetPar);
-
         this.ko_LDimParam = getParamStruct(StructType2D.ko_LDimParam);
         this.ko_DimText = getParamStruct(StructType2D.ko_DimText);
         this.ko_LDimSource = getParamStruct(StructType2D.ko_LDimSource);
         this.ko_DimDrawing = getParamStruct(StructType2D.ko_DimDrawing);
         this.ko_DimensionPartsParam = getParamStruct(StructType2D.ko_DimensionPartsParam);
         this.ko_DoubleValue = getParamStruct(StructType2D.ko_DoubleValue);
-
         this.ko_Char255 = getParamStruct(StructType2D.ko_Char255);
         this.ko_RectParam = getParamStruct(StructType2D.ko_RectParam);
     }
@@ -92,98 +96,108 @@ public class Kompas3D {
         return kompasObject.invokeGetComponent("GetParamStruct", new Variant(structType.getIndex()));
     }
 
-    public KsDocument2D getActiveDocument2D() {
-        return new KsDocument2D(kompasObject.invokeGetComponent("ActiveDocument2D"));
+    public Document getActiveDocument2D() {
+        return new Document2D(kompasObject.invokeGetComponent("ActiveDocument2D"));
     }
 
-    public boolean openDrawing(Path drawing) {
+    public boolean openDocument(Path drawing) {
         String extension = getFileExtension(drawing.getFileName().toString()).toLowerCase();
-        switch (extension){
+        switch (extension) {
             case "cdw":
-                return openDrawing(getKsDocument2D(), drawing, property.getVisibleMode());
+                return openDocument(getKsDocument2D(), drawing, property.getVisibleMode());
+            case "frw":
+                return openDocument(getKsDocument2D(), drawing, property.getVisibleMode());
             case "spw":
                 return openDocument(getSpcDocument(), drawing, property.getVisibleMode());
         }
         return false;
     }
 
-    private boolean openDrawing(KsDocument2D ksDocument2D, Path drawing, VisibleMode visibleMode) {
-        drawings.add(ksDocument2D);
-        return ksDocument2D.ksOpenDocument(drawing, visibleMode);
+    private boolean openDocument(Document document, Path drawing, VisibleMode visibleMode) {
+        openedDocuments.add(document);
+        return document.openDocument(drawing, visibleMode);
     }
 
-    private boolean openDocument(SpcDocument spcDocument, Path path, VisibleMode visibleMode){
-        specifications.add(spcDocument);
-        return spcDocument.ksOpenDocument(path, visibleMode);
-    }
-
-    private SpcDocument getSpcDocument(){
+    private SpcDocument getSpcDocument() {
         return new SpcDocument(kompasObject.invokeGetComponent("SpcDocument"));
     }
 
-    private KsDocument2D getKsDocument2D() {
-        return new KsDocument2D(kompasObject.invokeGetComponent("Document2D"));
+    private Document2D getKsDocument2D() {
+        return new Document2D(kompasObject.invokeGetComponent("Document2D"));
     }
 
-    public boolean closeDrawing(Path drawing) {
-        for (KsDocument2D document : drawings) {
-            DrawingMetaData drawingMetaData = document.getFileData(ksDocumentParam);
-            if (drawingMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
-                boolean result = document.ksCloseDocument();
-                drawings.remove(document);
-                return result;
-            }
+    public boolean closeDocument(Path document) {
+
+        String extension = getFileExtension(document.toAbsolutePath().toString()).toLowerCase();
+        switch (extension) {
+            case "cdw":
+                for (Document doc : openedDocuments) {
+                    if (doc.getPath(ksDocumentParam).toAbsolutePath().equals(document.toAbsolutePath())) {
+                        boolean result = doc.closeDocument();
+                        openedDocuments.remove(doc);
+                        return result;
+                    }
+                }
+            case "frw":
+                for (Document doc : openedDocuments) {
+                    if (doc.getPath(ksDocumentParam).toAbsolutePath().equals(document.toAbsolutePath())) {
+                        boolean result = doc.closeDocument();
+                        openedDocuments.remove(doc);
+                        return result;
+                    }
+                }
+            case "spw":
+                for (Document doc : openedDocuments) {
+//                    if (doc.getPath(ksDocumentParam).toAbsolutePath().equals(openedDocuments.toAbsolutePath())) {
+                        boolean result = doc.closeDocument();
+                        openedDocuments.remove(doc);
+                        return result;
+//                    }
+                }
         }
         return false;
     }
 
     public List<String> getAllTextFromDocument(Path drawing) {
         List<String> allTexts = new ArrayList<>();
-        for (KsDocument2D document : drawings) {
-            DrawingMetaData drawingMetaData = document.getFileData(ksDocumentParam);
-            if (drawingMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
-                ActiveXComponent ksIterator = kompasObject.invokeGetComponent("GetIterator");
-                ksIterator.invoke("ksCreateIterator", new Variant(TEXT_OBJ.getIndex()), new Variant(ALL_OBJ.getIndex()));
-                StringBuilder sb = new StringBuilder();
-                Variant textObjRef = ksIterator.invoke("ksMoveIterator", new Variant("F"));
-                do {
+        for (Document document : openedDocuments) {
+            if (document.getPath(ksDocumentParam).equals(drawing.toAbsolutePath())) {
+                KsIterator iterator = new KsIterator(kompasObject, TEXT_OBJ, ALL_OBJ);
+                Variant textObjRef = iterator.getFirstElement();
+                while (textObjRef.getInt() != 0) {
+                    StringBuilder sb = new StringBuilder();
                     document.ksGetObjParam(textObjRef, ksTextParam, ParamType.ALLPARAM);
-                    ActiveXComponent TEXT_LINE_ARR = ksTextParam.invokeGetComponent("GetTextLineArr");
-                    int lineCount = TEXT_LINE_ARR.invoke("ksGetArrayCount").getInt();
-                    for (int lineNumber = 0; lineNumber < lineCount; lineNumber++) {
-                        TEXT_LINE_ARR.invoke("ksGetArrayItem", new Variant(lineNumber), new Variant(ksTextLineParam));
-                        ActiveXComponent TEXT_ITEM_ARR = ksTextLineParam.invokeGetComponent("GetTextItemArr");
-                        int itemCount = TEXT_ITEM_ARR.invoke("ksGetArrayCount").getInt();
-                        for (int itemNumber = 0; itemNumber < itemCount; itemNumber++) {
-                            TEXT_ITEM_ARR.invoke("ksGetArrayItem", new Variant(itemNumber), new Variant(ksTextItemParam));
+                    KsDynamicArray textArray = new KsDynamicArray(ksTextParam.invokeGetComponent("GetTextLineArr"));
+                    for (int lineNumber = 0; lineNumber < textArray.ksGetArrayCount(); lineNumber++) {
+                        textArray.ksGetArrayItem(lineNumber, ksTextLineParam);
+                        KsDynamicArray textItemArray = new KsDynamicArray(ksTextLineParam.invokeGetComponent("GetTextItemArr"));
+                        for (int itemNumber = 0; itemNumber < textItemArray.ksGetArrayCount(); itemNumber++) {
+                            textItemArray.ksGetArrayItem(itemNumber, ksTextItemParam);
                             sb.append(ksTextItemParam.invoke("s").getString()).append(" ");
                         }
+                        textItemArray.ksDeleteArray();
                     }
-                    textObjRef = ksIterator.invoke("ksMoveIterator", new Variant("N"));
+                    textArray.ksDeleteArray();
+                    textObjRef = iterator.getNextElement();
                     allTexts.add(sb.toString().replaceAll("[\\s]{2,}", " "));
                     sb.setLength(0);
-                } while (textObjRef.getInt() != 0);
-                ksIterator.invoke("ksDeleteIterator");
+                }
+                iterator.deleteIterator();
             }
         }
         return allTexts;
     }
 
-    public void close() {
-        kompasObject.invoke("Quit");
-        drawings.clear();
-    }
 
-    public DrawingMetaData getDrawingMetaData(Path drawing) {
-        DrawingMetaData result = new DrawingMetaData();
-        for (KsDocument2D document : drawings) {
+    public DocumentMetaData getDrawingMetaData(Path drawing) {
+        DocumentMetaData result = new DocumentMetaData();
+        for (Document document : this.openedDocuments) {
             result = document.getFileData(ksDocumentParam);
             if (result.getFileName().equals(drawing.toAbsolutePath().toString())) {
                 document.ksGetDocOptions(SHEET_OPTIONS_EX, ksSheetOptions);
 
-                System.out.println(ksSheetOptions.getProperty("layoutName"));
-                System.out.println(ksSheetOptions.getProperty("sheetType"));
-                System.out.println(ksSheetOptions.getProperty("shtType"));
+                result.setSheetType(SheetType.valueOf(ksSheetOptions.getProperty("sheetType").getBoolean()));
+                result.setTemplate(new GraphicTemplate(ksSheetOptions.getProperty("shtType").getInt(), ksSheetOptions.getProperty("layoutName").getString()));
 
                 return result;
             }
@@ -193,9 +207,8 @@ public class Kompas3D {
 
     public List<String> getAllSizesFromDocument(Path drawing) {
         List<String> allSizes = new ArrayList<>();
-        for (KsDocument2D document : drawings) {
-            DrawingMetaData drawingMetaData = document.getFileData(ksDocumentParam);
-            if (drawingMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
+        for (Document document : this.openedDocuments) {
+            if (document.getPath(ksDocumentParam).equals(drawing.toAbsolutePath())) {
                 allSizes.addAll(getLdimensionObjectList(document));
                 allSizes.addAll(getAdimensionObjectList(document));
                 allSizes.addAll(getDdimensionObjectList(document));
@@ -210,139 +223,114 @@ public class Kompas3D {
         return allSizes;
     }
 
-    private List<NavigationMode> getNavigationModes() {
-        List<NavigationMode> result = new ArrayList<>();
-
-        result.add(LDIMENSION_OBJ);
-        result.add(ADIMENSION_OBJ);
-        result.add(DDIMENSION_OBJ);
-        result.add(RDIMENSION_OBJ);
-        result.add(RBREAKDIMENSION_OBJ);
-        result.add(LBREAKDIMENSION_OBJ);
-        result.add(ABREAKDIMENSION_OBJ);
-        result.add(ORDINATEDIMENSION_OBJ);
-        result.add(ARCDIMENSION_OBJ);
-
-        return result;
-    }
-
-    private List<String> getLdimensionObjectList(KsDocument2D document) {
+    private List<String> getLdimensionObjectList(Document document) {
         List<String> allSizes = new ArrayList<>();
         KsIterator iterator = new KsIterator(kompasObject, LDIMENSION_OBJ, ALL_OBJ);
         Variant elementReference = iterator.getFirstElement();
-
         while (elementReference.getInt() != 0) {
-            document.ksGetObjParam(elementReference, ko_LDimParam, ParamType.ALLPARAM);
             document.ksGetObjParam(elementReference, ko_DimText, ParamType.DIM_TEXT_PARAM);
-            document.ksGetObjParam(elementReference, ko_LDimSource, ParamType.DIM_SOURSE_PARAM);
-            document.ksGetObjParam(elementReference, ko_DimDrawing, ParamType.DIM_DRAW_PARAM);
-            document.ksGetObjParam(elementReference, ko_DimensionPartsParam, ParamType.DIM_PARTS);
-            document.ksGetObjParam(elementReference, ko_DoubleValue, ParamType.DIM_VALUE);
+            StringBuilder sb = new StringBuilder();
+            if (ko_DimText.invoke("GetBitFlagValue", new Variant(_AUTONOMINAL.getValue())).getBoolean()) {
+                document.ksGetObjParam(elementReference, ko_DoubleValue, DIM_VALUE);
+                sb.append(SizeSing.valueOf(ko_DimText.invoke("sign").getInt())).append(" ");
+                sb.append(ko_DoubleValue.invoke("value").toString()).append(" ");
+                if (ko_DimText.getProperty("stringFlag").getBoolean()) {
 
-            System.out.println("++++++++++++++++++");
+                } else {
+                    KsDynamicArray ksDynamicArray = new KsDynamicArray(ko_DimText.invokeGetComponent("GetTextArr"));
+                    for (int itemNumber = 0; itemNumber < ksDynamicArray.ksGetArrayCount(); itemNumber++) {
+                        ksDynamicArray.ksGetArrayItem(itemNumber, ko_Char255);
+                        sb.append(ko_Char255.invoke("str").toString()).append(" ");
+                    }
+                    allSizes.add(sb.toString().replaceAll("[\\s]{2,}", " "));
+                    ksDynamicArray.ksDeleteArray();
+                }
+            } else {
+                sb.append(SizeSing.valueOf(ko_DimText.invoke("sign").getInt())).append(" ");
+                if (ko_DimText.getProperty("stringFlag").getBoolean()) {
+
+                } else {
+                    KsDynamicArray ksDynamicArray = new KsDynamicArray(ko_DimText.invokeGetComponent("GetTextArr"));
+                    for (int itemNumber = 0; itemNumber < ksDynamicArray.ksGetArrayCount(); itemNumber++) {
+                        ksDynamicArray.ksGetArrayItem(itemNumber, ko_Char255);
+                        sb.append(ko_Char255.invoke("str").toString()).append(" ");
+                    }
+                    allSizes.add(sb.toString().replaceAll("[\\s]{2,}", " "));
+                    ksDynamicArray.ksDeleteArray();
+                }
+            }
+            sb.setLength(0);
+            elementReference = iterator.getNextElement();
+        }
+        iterator.deleteIterator();
+        return allSizes;
+    }
+
+    private List<String> getAdimensionObjectList(Document document) {
+        List<String> allSizes = new ArrayList<>();
+        KsIterator ksIterator = new KsIterator(kompasObject, ADIMENSION_OBJ, ALL_OBJ);
+        Variant sizeObjectRef = ksIterator.getFirstElement();
+        while (sizeObjectRef.getInt() != 0) {
+            document.ksGetObjParam(sizeObjectRef, ko_DimText, ParamType.DIM_TEXT_PARAM);
+            document.ksGetObjParam(sizeObjectRef, ko_DoubleValue, DIM_VALUE);
 
             Variant bitFlag = ko_DimText.getProperty("bitFlag");
-
-            ko_DimText.getProperty("sign");
+            System.out.println(ko_DimText.getProperty("sign"));
             ko_DimText.getProperty("stringFlag");
             ko_DimText.getProperty("style");
+
             ko_DimText.invoke("GetBitFlagValue", bitFlag);
-
-
             KsDynamicArray ksDynamicArray = new KsDynamicArray(ko_DimText.invokeGetComponent("GetTextArr"));
-
-
-
-            System.out.println(ksDynamicArray.ksGetArrayType());
 
             for (int itemNumber = 0; itemNumber < ksDynamicArray.ksGetArrayCount(); itemNumber++) {
                 ksDynamicArray.ksGetArrayItem(itemNumber, ko_Char255);
                 System.out.println(ko_Char255.invoke("str"));
             }
 
-            System.out.println("++++++++++++++++++");
             allSizes.add(String.valueOf(ko_DoubleValue.invoke("value").getDouble()));
-
-            ksDynamicArray.ksDeleteArray();
-            elementReference = iterator.getNextElement();
+            sizeObjectRef = ksIterator.getNextElement();
         }
-
-        iterator.deleteIterator();
+        ksIterator.deleteIterator();
         return allSizes;
     }
 
-    private List<String> getAdimensionObjectList(KsDocument2D document) {
+    private List<String> getDdimensionObjectList(Document document) {
         List<String> allSizes = new ArrayList<>();
-        ActiveXComponent ksIterator = kompasObject.invokeGetComponent("GetIterator");
-        ksIterator.invoke("ksCreateIterator", new Variant(ADIMENSION_OBJ.getIndex()), new Variant(ALL_OBJ.getIndex()));
-        Variant sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("F"));
+        KsIterator ksIterator = new KsIterator(kompasObject, DDIMENSION_OBJ, ALL_OBJ);
+        Variant sizeObjectRef = ksIterator.getFirstElement();
+
         while (sizeObjectRef.getInt() != 0) {
             document.ksGetObjParam(sizeObjectRef, ko_DimText, ParamType.DIM_TEXT_PARAM);
-            document.ksGetObjParam(sizeObjectRef, ko_DoubleValue, ParamType.DIM_VALUE);
+            document.ksGetObjParam(sizeObjectRef, ko_DoubleValue, DIM_VALUE);
 
-            System.out.println("++++++++++++++++++");
             Variant bitFlag = ko_DimText.getProperty("bitFlag");
             System.out.println(ko_DimText.getProperty("sign"));
             ko_DimText.getProperty("stringFlag");
             ko_DimText.getProperty("style");
 
             ko_DimText.invoke("GetBitFlagValue", bitFlag);
-            ActiveXComponent ksDynamicArray = ko_DimText.invokeGetComponent("GetTextArr");
+            KsDynamicArray ksDynamicArray = new KsDynamicArray(ko_DimText.invokeGetComponent("GetTextArr"));
 
-            int itemCount = ksDynamicArray.invoke("ksGetArrayCount").getInt();
-            System.out.println(ksDynamicArray.invoke("ksGetArrayType"));
-            for (int itemNumber = 0; itemNumber < itemCount; itemNumber++) {
-                ksDynamicArray.invoke("ksGetArrayItem", new Variant(itemNumber), new Variant(ko_Char255));
+            for (int itemNumber = 0; itemNumber < ksDynamicArray.ksGetArrayCount(); itemNumber++) {
+                ksDynamicArray.ksGetArrayItem(itemNumber, ko_Char255);
                 System.out.println(ko_Char255.invoke("str"));
             }
-            System.out.println("++++++++++++++++++");
+
             allSizes.add(String.valueOf(ko_DoubleValue.invoke("value").getDouble()));
-            sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("N"));
+            sizeObjectRef = ksIterator.getNextElement();
         }
-        ksIterator.invoke("ksDeleteIterator");
+        ksIterator.deleteIterator();
         return allSizes;
     }
 
-    private List<String> getDdimensionObjectList(KsDocument2D document) {
-        List<String> allSizes = new ArrayList<>();
-        ActiveXComponent ksIterator = kompasObject.invokeGetComponent("GetIterator");
-        ksIterator.invoke("ksCreateIterator", new Variant(DDIMENSION_OBJ.getIndex()), new Variant(ALL_OBJ.getIndex()));
-        Variant sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("F"));
-        while (sizeObjectRef.getInt() != 0) {
-            document.ksGetObjParam(sizeObjectRef, ko_DimText, ParamType.DIM_TEXT_PARAM);
-            document.ksGetObjParam(sizeObjectRef, ko_DoubleValue, ParamType.DIM_VALUE);
-
-            System.out.println("++++++++++++++++++");
-            Variant bitFlag = ko_DimText.getProperty("bitFlag");
-            System.out.println(ko_DimText.getProperty("sign"));
-            ko_DimText.getProperty("stringFlag");
-            ko_DimText.getProperty("style");
-
-            ko_DimText.invoke("GetBitFlagValue", bitFlag);
-            ActiveXComponent ksDynamicArray = ko_DimText.invokeGetComponent("GetTextArr");
-
-            int itemCount = ksDynamicArray.invoke("ksGetArrayCount").getInt();
-            System.out.println(ksDynamicArray.invoke("ksGetArrayType"));
-            for (int itemNumber = 0; itemNumber < itemCount; itemNumber++) {
-                ksDynamicArray.invoke("ksGetArrayItem", new Variant(itemNumber), new Variant(ko_Char255));
-                System.out.println(ko_Char255.invoke("str"));
-            }
-            System.out.println("++++++++++++++++++");
-            allSizes.add(String.valueOf(ko_DoubleValue.invoke("value").getDouble()));
-            sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("N"));
-        }
-        ksIterator.invoke("ksDeleteIterator");
-        return allSizes;
-    }
-
-    private List<String> getRdimensionObjectList(KsDocument2D document) {
+    private List<String> getRdimensionObjectList(Document document) {
         List<String> allSizes = new ArrayList<>();
         ActiveXComponent ksIterator = kompasObject.invokeGetComponent("GetIterator");
         ksIterator.invoke("ksCreateIterator", new Variant(RDIMENSION_OBJ.getIndex()), new Variant(ALL_OBJ.getIndex()));
         Variant sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("F"));
         while (sizeObjectRef.getInt() != 0) {
             document.ksGetObjParam(sizeObjectRef, ko_DimText, ParamType.DIM_TEXT_PARAM);
-            document.ksGetObjParam(sizeObjectRef, ko_DoubleValue, ParamType.DIM_VALUE);
+            document.ksGetObjParam(sizeObjectRef, ko_DoubleValue, DIM_VALUE);
 
             System.out.println("++++++++++++++++++");
             Variant bitFlag = ko_DimText.getProperty("bitFlag");
@@ -367,14 +355,14 @@ public class Kompas3D {
         return allSizes;
     }
 
-    private List<String> getRbreakDimensionObjectList(KsDocument2D document) {
+    private List<String> getRbreakDimensionObjectList(Document document) {
         List<String> allSizes = new ArrayList<>();
         ActiveXComponent ksIterator = kompasObject.invokeGetComponent("GetIterator");
         ksIterator.invoke("ksCreateIterator", new Variant(RBREAKDIMENSION_OBJ.getIndex()), new Variant(ALL_OBJ.getIndex()));
         Variant sizeObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("F"));
         while (sizeObjectRef.getInt() != 0) {
             document.ksGetObjParam(sizeObjectRef, ko_DimText, ParamType.DIM_TEXT_PARAM);
-            document.ksGetObjParam(sizeObjectRef, ko_DoubleValue, ParamType.DIM_VALUE);
+            document.ksGetObjParam(sizeObjectRef, ko_DoubleValue, DIM_VALUE);
 
             System.out.println("++++++++++++++++++");
             Variant bitFlag = ko_DimText.getProperty("bitFlag");
@@ -399,29 +387,112 @@ public class Kompas3D {
         return allSizes;
     }
 
-    private List<String> getLbreakDimensionObjectList(KsDocument2D document) {
+    private List<String> getLbreakDimensionObjectList(Document document) {
         return new ArrayList<>();
     }
 
-    private List<String> getAbreakDimensionObjectList(KsDocument2D document) {
+    private List<String> getAbreakDimensionObjectList(Document document) {
         return new ArrayList<>();
     }
 
-    private List<String> getOrdinateDimensionObjectList(KsDocument2D document) {
+    private List<String> getOrdinateDimensionObjectList(Document document) {
+        List<String> allTexts = new ArrayList<>();
+        KsIterator iterator = new KsIterator(kompasObject, ORDINATEDIMENSION_OBJ, ALL_OBJ);
+        Variant elementReference = iterator.getFirstElement();
+        while (elementReference.getInt() != 0) {
+            document.ksGetObjParam(elementReference, ko_DimText, ParamType.DIM_TEXT_PARAM);
+            if (ko_DimText.invoke("GetBitFlagValue", new Variant(_AUTONOMINAL.getValue())).getBoolean()) {
+                document.ksGetObjParam(elementReference, ko_DoubleValue, DIM_VALUE);
+                allTexts.add(String.valueOf(new DecimalFormat("###.###").format(ko_DoubleValue.invoke("value").getDouble() / 1000.)));
+            } else {
+                KsDynamicArray ksDynamicArray = new KsDynamicArray(ko_DimText.invokeGetComponent("GetTextArr"));
+                if (ksDynamicArray.ksGetArrayType() == CHAR_STR_ARR.getIndex()) {
+                    for (int itemNumber = 0; itemNumber < ksDynamicArray.ksGetArrayCount(); itemNumber++) {
+                        ksDynamicArray.ksGetArrayItem(itemNumber, ko_Char255);
+                        allTexts.add(ko_Char255.invoke("str").toString());
+                    }
+                } else if (ksDynamicArray.ksGetArrayType() == TEXT_LINE_ARR.getIndex()) {
+                    StringBuilder sb = new StringBuilder();
+                    for (int lineNumber = 0; lineNumber < ksDynamicArray.ksGetArrayCount(); lineNumber++) {
+                        ksDynamicArray.ksGetArrayItem(lineNumber, ksTextLineParam);
+                        KsDynamicArray textItemArray = new KsDynamicArray(ksTextLineParam.invokeGetComponent("GetTextItemArr"));
+                        for (int itemNumber = 0; itemNumber < textItemArray.ksGetArrayCount(); itemNumber++) {
+                            textItemArray.ksGetArrayItem(itemNumber, ksTextItemParam);
+                            sb.append(ksTextItemParam.invoke("s").getString()).append(" ");
+                        }
+                        textItemArray.ksDeleteArray();
+                    }
+                    allTexts.add(sb.toString().replaceAll("[\\s]{2,}", " "));
+                }
+                ksDynamicArray.ksDeleteArray();
+            }
+            elementReference = iterator.getNextElement();
+        }
+        iterator.deleteIterator();
+        return allTexts;
+    }
+
+    private List<String> getArcDimensionObjectList(Document document) {
         return new ArrayList<>();
     }
 
-    private List<String> getArcDimensionObjectList(KsDocument2D document) {
-        return new ArrayList<>();
+    public List<String> getAllTableDataFromDocument(Path drawing) {
+        List<String> allTableData = new ArrayList<>();
+        KsIterator iterator = new KsIterator(kompasObject, TABLE_OBJ, ALL_OBJ);
+        for (Document document : this.openedDocuments) {
+            if (document.getPath(ksDocumentParam).equals(drawing.toAbsolutePath())) {
+                Variant tableObjectRef = iterator.getFirstElement();
+                while (tableObjectRef.getInt() != 0) {
+                    document.ksOpenTable(tableObjectRef);
+                    StringBuilder sb = new StringBuilder();
+                    while (document.ksGetTableColumnText(new Variant(0, true), ksTextParam)) {
+                        KsDynamicArray textLineArr = new KsDynamicArray(ksTextParam.invokeGetComponent("GetTextLineArr"));
+                        for (int index = 0; index < textLineArr.ksGetArrayCount(); index++) {
+                            textLineArr.ksGetArrayItem(index, ksTextLineParam);
+                            KsDynamicArray textItemArr = new KsDynamicArray(ksTextLineParam.invokeGetComponent("GetTextItemArr"));
+                            for (int itemNumber = 0; itemNumber < textItemArr.ksGetArrayCount(); itemNumber++) {
+                                textItemArr.ksGetArrayItem(itemNumber, ksTextItemParam);
+                                sb.append(ksTextItemParam.invoke("s").getString()).append(" ");
+                            }
+                            textItemArr.ksDeleteArray();
+                        }
+                        textLineArr.ksDeleteArray();
+                    }
+                    document.ksEndObj();
+                    tableObjectRef = iterator.getNextElement();
+                    allTableData.add(sb.toString().replaceAll("[\\s]{2,}", " "));
+                    sb.setLength(0);
+                }
+            }
+        }
+        iterator.deleteIterator();
+        return allTableData;
     }
 
 
+    public List<String> getAllLineSizesFromDocument(Path document) {
+        for (Document drawing : openedDocuments) {
+            if (drawing.getPath(ksDocumentParam).equals(document.toAbsolutePath())) {
+                return getLdimensionObjectList(drawing);
+            }
+        }
+        return new ArrayList<>();
+    }
+
+    public List<String> getAllHeightMartSizesFromDocument(Path document) {
+        for (Document drawing : this.openedDocuments) {
+            if (drawing.getPath(ksDocumentParam).equals(document.toAbsolutePath())) {
+                return getOrdinateDimensionObjectList(drawing);
+            }
+        }
+        return new ArrayList<>();
+    }
 
 
     public boolean openStamp(Path drawing) {
-        for (KsDocument2D document : drawings) {
-            DrawingMetaData drawingMetaData = document.getFileData(ksDocumentParam);
-            if (drawingMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
+        for (Document document : this.openedDocuments) {
+            DocumentMetaData documentMetaData = document.getFileData(ksDocumentParam);
+            if (documentMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
                 try {
                     return document.ksOpenStamp();
                 } catch (Exception ex) {
@@ -433,9 +504,9 @@ public class Kompas3D {
     }
 
     public boolean closeStamp(Path drawing) {
-        for (KsDocument2D document : drawings) {
-            DrawingMetaData drawingMetaData = document.getFileData(ksDocumentParam);
-            if (drawingMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
+        for (Document document : this.openedDocuments) {
+            DocumentMetaData documentMetaData = document.getFileData(ksDocumentParam);
+            if (documentMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
                 try {
                     return document.ksCloseStamp();
                 } catch (Exception ex) {
@@ -447,9 +518,9 @@ public class Kompas3D {
     }
 
     public boolean cleanStamp(Path drawing) {
-        for (KsDocument2D document : drawings) {
-            DrawingMetaData drawingMetaData = document.getFileData(ksDocumentParam);
-            if (drawingMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
+        for (Document document : this.openedDocuments) {
+            DocumentMetaData documentMetaData = document.getFileData(ksDocumentParam);
+            if (documentMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
                 try {
                     return document.ksCleanStamp();
                 } catch (Exception ex) {
@@ -461,11 +532,11 @@ public class Kompas3D {
     }
 
     public boolean saveDrawing(Path drawing) {
-        for (KsDocument2D document : drawings) {
-            DrawingMetaData drawingMetaData = document.getFileData(ksDocumentParam);
-            if (drawingMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
+        for (Document document : this.openedDocuments) {
+            DocumentMetaData documentMetaData = document.getFileData(ksDocumentParam);
+            if (documentMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
                 try {
-                    return document.ksSaveDocument(drawing);
+                    return document.saveDocument(drawing);
                 } catch (Exception ex) {
                     return false;
                 }
@@ -475,9 +546,9 @@ public class Kompas3D {
     }
 
     public boolean cleanStampCell(KsStampEnum cell, Path drawing) {
-        for (KsDocument2D document : drawings) {
-            DrawingMetaData drawingMetaData = document.getFileData(ksDocumentParam);
-            if (drawingMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
+        for (Document document : this.openedDocuments) {
+            DocumentMetaData documentMetaData = document.getFileData(ksDocumentParam);
+            if (documentMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
                 try {
                     return document.ksCleanStampCell(cell);
                 } catch (Exception ex) {
@@ -489,9 +560,9 @@ public class Kompas3D {
     }
 
     public boolean setStampCellValue(KsStampEnum cell, String value, Path drawing) {
-        for (KsDocument2D document : drawings) {
-            DrawingMetaData drawingMetaData = document.getFileData(ksDocumentParam);
-            if (drawingMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
+        for (Document document : this.openedDocuments) {
+            DocumentMetaData documentMetaData = document.getFileData(ksDocumentParam);
+            if (documentMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
                 try {
                     return document.ksSetStampCell(ksTextItemParam, cell, value);
                 } catch (Exception ex) {
@@ -504,9 +575,9 @@ public class Kompas3D {
 
     public StampDTO getStampData(Path drawing) {
         StampDTO result = new StampDTO();
-        for (KsDocument2D document : drawings) {
-            DrawingMetaData drawingMetaData = document.getFileData(ksDocumentParam);
-            if (drawingMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
+        for (Document document : this.openedDocuments) {
+            DocumentMetaData documentMetaData = document.getFileData(ksDocumentParam);
+            if (documentMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
                 try {
                     return document.getStampData(ksTextLineParam, ksTextItemParam);
                 } catch (Exception ex) {
@@ -518,9 +589,9 @@ public class Kompas3D {
     }
 
     public DocType getDocumentType(Path drawing) {
-        for (KsDocument2D document : drawings) {
-            DrawingMetaData drawingMetaData = document.getFileData(ksDocumentParam);
-            if (drawingMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
+        for (Document document : this.openedDocuments) {
+            DocumentMetaData documentMetaData = document.getFileData(ksDocumentParam);
+            if (documentMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
                 return DocType.valueOf(kompasObject.invoke("ksGetDocumentType", new Variant(document.getReference())).getInt());
             }
         }
@@ -529,18 +600,20 @@ public class Kompas3D {
 
     public DrawingCharacteristicsDTO getDrawingSize(Path drawing) {
         DrawingCharacteristicsDTO characteristics = new DrawingCharacteristicsDTO();
-        for (KsDocument2D document : drawings) {
-            DrawingMetaData drawingMetaData = document.getFileData(ksDocumentParam);
-            if (drawingMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
+        for (Document document : this.openedDocuments) {
+            DocumentMetaData documentMetaData = document.getFileData(ksDocumentParam);
+            if (documentMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
                 DocType type = DocType.valueOf(kompasObject.invoke("ksGetDocumentType", new Variant(document.getReference())).getInt());
                 if (type == lt_DocFragment) {
                     document.ksGetObjGabaritRect(document.getReference(), ko_RectParam);
                     ActiveXComponent ksMathPointParamB = ko_RectParam.invokeGetComponent("GetpBot");
                     ActiveXComponent ksMathPointParamT = ko_RectParam.invokeGetComponent("GetpTop");
+
                     Size size = new Size(
                             ksMathPointParamT.invoke("x").getDouble() - ksMathPointParamB.invoke("x").getDouble(),
                             ksMathPointParamT.invoke("y").getDouble() - ksMathPointParamB.invoke("y").getDouble()
                     );
+
                     characteristics.setOrientation(valueOf(size.isHorizontal()));
                     characteristics.setSheetFormat(getFormat(size));
                     characteristics.setMultiplicity(getMultiplicity(size));
@@ -573,50 +646,14 @@ public class Kompas3D {
     }
 
     public boolean saveDrawingAsImage(RasterParamDTO params, Path drawing) {
-        for (KsDocument2D document : drawings) {
-            DrawingMetaData drawingMetaData = document.getFileData(ksDocumentParam);
-            if (drawingMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
+        for (Document document : this.openedDocuments) {
+            DocumentMetaData documentMetaData = document.getFileData(ksDocumentParam);
+            if (documentMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
                 ActiveXComponent ksRasterFormatParam = document.rasterFormatParam(params);
                 return document.saveAsToRasterFormat(drawing.toAbsolutePath().toString().split("\\.")[0] + params.getImageFormat().getExtension().toLowerCase(), ksRasterFormatParam);
             }
         }
         return false;
-    }
-
-    public List<String> getAllTableDataFromDocument(Path drawing) {
-        List<String> allTableData = new ArrayList<>();
-        ActiveXComponent ksIterator = kompasObject.invokeGetComponent("GetIterator");
-        ksIterator.invoke("ksCreateIterator", new Variant(TABLE_OBJ.getIndex()), new Variant(ALL_OBJ.getIndex()));
-        for (KsDocument2D document : drawings) {
-            DrawingMetaData drawingMetaData = document.getFileData(ksDocumentParam);
-            if (drawingMetaData.getFileName().equals(drawing.toAbsolutePath().toString())) {
-                Variant tableObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("F"));
-                while (tableObjectRef.getInt() != 0) {
-                    document.ksOpenTable(tableObjectRef);
-                    StringBuilder sb = new StringBuilder();
-                    while (document.ksGetTableColumnText(new Variant(0, true), ksTextParam)) {
-                        KsDynamicArray arrpLineText = new KsDynamicArray(ksTextParam.invokeGetComponent("GetTextLineArr"));
-                        for (int index = 0; index < arrpLineText.ksGetArrayCount(); index++) {
-                            arrpLineText.ksGetArrayItem(index, ksTextLineParam);
-                            ActiveXComponent arrTextItem = ksTextLineParam.invokeGetComponent("GetTextItemArr");
-                            int itemCount = arrTextItem.invoke("ksGetArrayCount").getInt();
-                            for (int itemNumber = 0; itemNumber < itemCount; itemNumber++) {
-                                arrTextItem.invoke("ksGetArrayItem", new Variant(itemNumber), new Variant(ksTextItemParam));
-                                sb.append(ksTextItemParam.invoke("s").getString()).append(" ");
-                            }
-                            arrTextItem.invoke("ksDeleteArray");
-                        }
-                        arrpLineText.ksDeleteArray();
-                    }
-                    document.ksEndObj();
-                    tableObjectRef = ksIterator.invoke("ksMoveIterator", new Variant("N"));
-                    allTableData.add(sb.toString().replaceAll("[\\s]{2,}", " "));
-                    sb.setLength(0);
-                }
-            }
-        }
-        ksIterator.invoke("ksDeleteIterator");
-        return allTableData;
     }
 
     public Object getSystemVersion() {
@@ -634,7 +671,13 @@ public class Kompas3D {
         return null;
     }
 
-    public void paint(long winRef) {
-        kompasObject.invoke("ksDrawKompasDocument", new Variant(winRef), new Variant("C:\\Users\\Amsterdam\\IdeaProjects\\K3D\\K3D\\src\\test\\resources\\fixtures\\A4_metadata.cdw"));
+
+    public void drawDocumentInWindow(long winRef, Path document) {
+        kompasObject.invoke("ksDrawKompasDocument", new Variant(winRef), new Variant(document.toAbsolutePath().toString()));
+    }
+
+    public void close() {
+        kompasObject.invoke("Quit");
+        openedDocuments.clear();
     }
 }

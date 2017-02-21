@@ -27,5 +27,4 @@ public class KsIterator {
     public void deleteIterator(){
         ksIterator.invoke("ksDeleteIterator");
     }
-
 }

@@ -27,13 +27,13 @@ public enum DocType {
     private static Map<Integer, DocType> map = new HashMap<>();
 
     static {
-        Stream.of(DocType.values()).forEach(dt -> map.put(dt.getValue(), dt));
+        Stream.of(DocType.values()).forEach(dt -> map.put(dt.getIndex(), dt));
     }
 
     public static DocType valueOf(int docType) {
         return map.get(docType);
     }
 
-    private int value;
+    private int index;
     private String name;
 }

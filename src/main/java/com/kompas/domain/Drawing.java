@@ -2,7 +2,7 @@ package com.kompas.domain;
 
 import com.kompas.model.dto.DrawingCharacteristicsDTO;
 import com.kompas.model.dto.StampDTO;
-import com.kompas.model.kompas.DrawingMetaData;
+import com.kompas.model.kompas.DocumentMetaData;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +20,7 @@ import java.io.File;
 public class Drawing {
     private StampDTO stampDTO;
     private DrawingCharacteristicsDTO drawingCharacteristicsDTO;
-    private DrawingMetaData drawingMetaData;
+    private DocumentMetaData documentMetaData;
     private File drawingFile;
     private Iterable<String> texts, sizes, tables;
 }

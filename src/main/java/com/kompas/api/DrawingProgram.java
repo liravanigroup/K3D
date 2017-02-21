@@ -3,12 +3,10 @@ package com.kompas.api;
 import com.kompas.model.dto.DrawingCharacteristicsDTO;
 import com.kompas.model.dto.RasterParamDTO;
 import com.kompas.model.dto.StampDTO;
-import com.kompas.model.kompas.DrawingMetaData;
+import com.kompas.model.kompas.DocumentMetaData;
 import com.kompas.model.kompas.enums.KsStampEnum;
 import com.kompas.model.kompas.enums.documentparam.DocType;
 
-import javax.swing.*;
-import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -25,6 +23,10 @@ public interface DrawingProgram {
     boolean closeDocument(Path document);
 
     List<String> getAllTextsFromDocument(Path document);
+
+    List<String> getAllHeightMartSizesFromDocument(Path document);
+
+    List<String> getAllLineSizesFromDocument(Path document);
 
     List<String> getAllSizesFromDocument(Path document);
 
@@ -48,11 +50,13 @@ public interface DrawingProgram {
 
     DrawingCharacteristicsDTO getDrawingSize(Path document);
 
-    DrawingMetaData getDrawingMetaData(Path document);
+    DocumentMetaData getDrawingMetaData(Path document);
 
     void getSystemVersion();
 
     void close();
 
-    void paint(long winRef);
+    void drawDocumentInWindow(long winRef, Path document);
+
+    boolean isSameDocument(Path document1, Path document2);
 }

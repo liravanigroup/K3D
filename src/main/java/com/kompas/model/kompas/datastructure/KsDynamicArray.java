@@ -49,7 +49,7 @@ public class KsDynamicArray {
     /**
      * @return - количество элементов в массиве
      */
-    public long ksGetArrayCount() {
+    public int ksGetArrayCount() {
         return ksDynamicArray.invoke("ksGetArrayCount").getInt();
     }
 
@@ -75,5 +75,9 @@ public class KsDynamicArray {
      */
     public long ksSetArrayItem(int elementIndex, ActiveXComponent ksTextLineParam) {
         return ksDynamicArray.invoke("ksSetArrayItem", new Variant(elementIndex), new Variant(ksTextLineParam)).getInt();
+    }
+
+    public String getString() {
+        return ksDynamicArray.getProperty("str").getString();
     }
 }
